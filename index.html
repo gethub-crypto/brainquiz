@@ -6,168 +6,238 @@
     <title>Викторина PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-        
-        .neon-green {
-            text-shadow: 0 0 15px #00ff9d, 0 0 30px #00ff9d;
-        }
-        
-        .level-card {
-            transition: all 0.3s ease;
-        }
-        
-        .level-card:hover {
-            transform: scale(1.08);
-        }
-        
-        .modal {
-            animation: popUp 0.4s ease forwards;
-        }
-        
-        @keyframes popUp {
-            from { opacity: 0; transform: scale(0.8) translateY(30px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-        }
+        body { font-family: system-ui, sans-serif; }
+        .neon { text-shadow: 0 0 15px #00ff9d, 0 0 30px #00ff9d; }
+        .level-card { transition: all 0.25s ease; }
+        .level-card:active { transform: scale(0.92); }
     </style>
 </head>
 <body class="bg-black text-white min-h-screen">
 
-<div class="max-w-[420px] mx-auto bg-[#0a0a0a] min-h-screen flex flex-col overflow-hidden border-x border-[#00ff9d]/20">
+<div class="max-w-[420px] mx-auto bg-[#0a0a0a] min-h-screen flex flex-col">
 
     <!-- HEADER -->
     <div class="bg-[#111113] border-b border-[#00ff9d]/30 px-4 py-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
-            <div class="w-9 h-9 bg-[#1a1a1e] rounded-2xl flex items-center justify-center text-2xl border border-[#00ff9d]/50">
-                🧠
-            </div>
-            <div class="text-2xl font-bold tracking-wider neon-green">PRO</div>
+            <div class="w-9 h-9 bg-[#1a1a1e] rounded-2xl flex items-center justify-center text-3xl">🧠</div>
+            <div class="text-3xl font-bold tracking-wider neon text-[#00ff9d]">PRO</div>
         </div>
-        
-        <div class="flex items-center gap-4">
+        <div class="flex gap-4">
             <div class="flex items-center bg-[#1a1a1e] px-4 py-1 rounded-3xl gap-1.5">
-                <span class="text-yellow-400 text-xl">⭐</span>
-                <span id="xp" class="font-semibold">1240</span>
+                <span class="text-yellow-400">⭐</span>
+                <span id="xp">1240</span>
             </div>
             <div class="flex items-center bg-[#1a1a1e] px-4 py-1 rounded-3xl gap-1.5">
-                <span class="text-yellow-400 text-xl">🪙</span>
-                <span id="coins" class="font-semibold">850</span>
+                <span class="text-yellow-400">🪙</span>
+                <span id="coins">850</span>
             </div>
-            <div onclick="showLivesModal()" class="flex items-center bg-[#1a1a1e] px-3 py-1 rounded-3xl gap-1 cursor-pointer">
-                <span id="lives-display" class="text-xl">❤️❤️❤️</span>
-            </div>
+            <div id="lives" onclick="showLivesModal()" class="flex items-center bg-[#1a1a1e] px-3 py-1 rounded-3xl gap-1 cursor-pointer text-xl"></div>
         </div>
     </div>
 
     <!-- ЭКРАН УРОВНЕЙ -->
-    <div id="levels-screen" class="flex-1 px-4 py-6 overflow-y-auto">
-        <div class="flex justify-between items-center mb-6">
+    <div id="levels-screen" class="flex-1 p-4 overflow-y-auto">
+        <div class="flex justify-between mb-6">
             <h1 class="text-4xl font-bold">Уровни</h1>
-            <div onclick="showDailyBonus()" class="flex items-center gap-2 bg-[#1a1a1e] px-5 py-2 rounded-3xl text-sm">
-                <span class="text-orange-400">🔥</span>
-                <span id="streak" class="font-medium">0 дней</span>
+            <div class="bg-[#1a1a1e] px-5 py-2 rounded-3xl flex items-center gap-2 text-sm">
+                🔥 <span id="streak">3</span> дней
             </div>
         </div>
 
-        <div id="levels-grid" class="grid grid-cols-4 gap-3">
-            <!-- Заполняется JavaScript -->
-        </div>
+        <div id="levels-grid" class="grid grid-cols-4 gap-3"></div>
 
-        <div class="mt-10 flex justify-center">
-            <button onclick="showScreen('shop')" 
-                    class="bg-[#00ff9d] hover:bg-[#00e68a] text-black font-bold text-xl px-12 py-5 rounded-3xl flex items-center gap-3 shadow-lg shadow-[#00ff9d]/50">
-                Открыть магазин
-                <span class="text-2xl">🛒</span>
+        <div class="mt-12 flex justify-center">
+            <button onclick="showShop()" 
+                    class="bg-[#00ff9d] hover:bg-[#00e68a] text-black font-bold text-xl px-10 py-5 rounded-3xl flex items-center gap-3">
+                Открыть магазин 🛒
             </button>
         </div>
     </div>
 
-    <!-- Остальные экраны (game, result, shop и т.д.) оставлены из предыдущей версии, но сильно упрощены и исправлены -->
-    <!-- Для краткости здесь только главный экран. Полный код со всеми экранами ниже в финальной версии -->
+    <!-- ЭКРАН ИГРЫ -->
+    <div id="game-screen" class="flex-1 hidden flex-col">
+        <div class="p-4 flex justify-between items-center border-b border-[#00ff9d]/20">
+            <button onclick="backToLevels()" class="text-3xl">←</button>
+            <div id="level-info" class="font-bold text-lg"></div>
+            <div id="q-counter" class="bg-[#1a1a1e] px-4 py-1 rounded-3xl"></div>
+        </div>
+        
+        <div class="flex-1 p-6 flex flex-col">
+            <div id="question" class="text-2xl font-semibold text-center my-auto leading-tight"></div>
+            
+            <div id="options" class="grid grid-cols-2 gap-3 mt-auto"></div>
+        </div>
+    </div>
 
-    <!-- ... (полный код слишком длинный для одного сообщения) ... -->
+    <!-- ЭКРАН РЕЗУЛЬТАТА -->
+    <div id="result-screen" class="flex-1 hidden flex-col items-center justify-center p-6">
+        <div id="result-icon" class="text-8xl mb-6"></div>
+        <h2 id="result-title" class="text-4xl font-bold mb-2"></h2>
+        <p id="result-text" class="text-center text-lg mb-10"></p>
+        
+        <button onclick="nextQuestion()" 
+                class="w-full max-w-xs bg-[#00ff9d] text-black font-bold py-5 rounded-3xl text-xl">Следующий вопрос</button>
+        <button onclick="backToLevels()" 
+                class="mt-4 text-gray-400">В меню уровней</button>
+    </div>
 
 </div>
 
 <script>
-// ==================== ИСПРАВЛЕННЫЙ И РАБОЧИЙ КОД ====================
-
+// ==================== ДАННЫЕ ====================
 let player = {
     coins: 850,
     xp: 1240,
     lives: 3,
-    lastLifeTime: Date.now(),
-    dailyStreak: 3,
-    lastDailyDate: "2025-03-23",
-    levelsProgress: Array(20).fill().map((_, i) => ({
-        level: i + 1,
-        answered: [],
-        completed: false
-    }))
+    levelsProgress: Array.from({length: 20}, (_, i) => ({level: i+1, answered: [], completed: false}))
 };
 
-function saveData() {
-    localStorage.setItem('quizProData', JSON.stringify(player));
-}
+let currentLevelNum = 0;
+let currentQuestionIdx = 0;
 
-function loadData() {
-    const saved = localStorage.getItem('quizProData');
+// Пример вопросов (по 2 на уровень для теста, можешь добавить больше)
+const allQuestions = Array.from({length: 20}, (_, lvl) => ({
+    level: lvl + 1,
+    questions: [
+        { q: `Вопрос ${lvl+1}.1 — Столица России?`, options: ["Москва","Питер","Киев","Минск"], correct: 0 },
+        { q: `Вопрос ${lvl+1}.2 — Сколько планет в Солнечной системе?`, options: ["7","8","9","10"], correct: 1 }
+    ]
+}));
+
+// ==================== СОХРАНЕНИЕ ====================
+function save() { localStorage.setItem('quizPro', JSON.stringify(player)); }
+function load() {
+    const saved = localStorage.getItem('quizPro');
     if (saved) player = JSON.parse(saved);
 }
 
+// ==================== ОТРИСОВКА ====================
 function renderHeader() {
     document.getElementById('xp').textContent = player.xp;
     document.getElementById('coins').textContent = player.coins;
-    document.getElementById('lives-display').innerHTML = '❤️'.repeat(player.lives) + '♡'.repeat(3 - player.lives);
+    document.getElementById('lives').innerHTML = '❤️'.repeat(player.lives) + '♡'.repeat(3-player.lives);
 }
 
 function renderLevels() {
     const grid = document.getElementById('levels-grid');
     grid.innerHTML = '';
-
+    
     for (let i = 1; i <= 20; i++) {
-        const progress = player.levelsProgress[i-1];
-        const answered = progress.answered.length;
+        const prog = player.levelsProgress[i-1];
         const unlocked = i === 1 || player.xp >= (i-1) * 150;
-
-        const div = document.createElement('div');
-        div.className = `level-card aspect-square bg-[#1a1a1e] rounded-3xl flex flex-col items-center justify-center border ${unlocked ? 'border-[#00ff9d]/40' : 'opacity-40'}`;
         
-        div.innerHTML = `
-            <div class="text-5xl font-bold text-[#00ff9d]">${i}</div>
-            <div class="text-xs mt-1 tracking-widest ${unlocked ? 'text-[#00ff9d]' : 'text-gray-500'}">УРОВЕНЬ</div>
-            ${answered > 0 ? `<div class="text-[10px] mt-3 text-gray-400">${answered}/10</div>` : ''}
-            ${progress.completed ? `<div class="absolute text-3xl mt-2">🏆</div>` : ''}
+        const card = document.createElement('div');
+        card.className = `level-card aspect-square rounded-3xl flex flex-col items-center justify-center border ${unlocked ? 'border-[#00ff9d]/50 bg-[#1a1a1e]' : 'opacity-40 bg-[#111]'}`;
+        card.innerHTML = `
+            <div class="text-5xl font-bold ${unlocked ? 'text-[#00ff9d]' : 'text-gray-500'}">${i}</div>
+            <div class="text-xs tracking-widest mt-1 ${unlocked ? 'text-[#00ff9d]' : 'text-gray-500'}">УРОВЕНЬ</div>
+            ${prog.answered.length > 0 ? `<div class="text-[10px] mt-2">${prog.answered.length}/2</div>` : ''}
         `;
-
+        
         if (unlocked) {
-            div.onclick = () => alert(`Запуск уровня ${i} (в полной версии здесь будет игра)`);
+            card.onclick = () => startLevel(i);
         }
-        grid.appendChild(div);
+        grid.appendChild(card);
     }
 }
 
-function showScreen(screen) {
-    alert(`Переход на экран: ${screen} (полная версия содержит все экраны)`);
+// ==================== ЗАПУСК УРОВНЯ ====================
+function startLevel(levelNum) {
+    currentLevelNum = levelNum;
+    currentQuestionIdx = 0;
+    
+    document.getElementById('levels-screen').classList.add('hidden');
+    document.getElementById('game-screen').classList.remove('hidden');
+    
+    document.getElementById('level-info').innerHTML = `Уровень <span class="text-[#00ff9d]">${levelNum}</span>`;
+    loadQuestion();
 }
 
-// Инициализация
+function loadQuestion() {
+    const qData = allQuestions[currentLevelNum-1].questions[currentQuestionIdx];
+    
+    document.getElementById('question').textContent = qData.q;
+    document.getElementById('q-counter').textContent = `${currentQuestionIdx + 1} / 2`;
+    
+    const optsDiv = document.getElementById('options');
+    optsDiv.innerHTML = '';
+    
+    qData.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.className = "bg-[#1a1a1e] hover:bg-[#222] py-6 rounded-3xl text-left px-5 text-lg";
+        btn.textContent = opt;
+        btn.onclick = () => checkAnswer(idx, qData.correct);
+        optsDiv.appendChild(btn);
+    });
+}
+
+function checkAnswer(selected, correct) {
+    const isRight = selected === correct;
+    
+    // Награда
+    if (isRight) {
+        player.coins += 50;
+        player.xp += 10;
+    }
+    
+    // Сохраняем прогресс
+    const prog = player.levelsProgress[currentLevelNum-1];
+    prog.answered.push({q: currentQuestionIdx, correct: isRight});
+    if (prog.answered.length === 2) prog.completed = true;
+    
+    save();
+    renderHeader();
+    
+    // Показываем результат
+    showResult(isRight);
+}
+
+function showResult(isRight) {
+    document.getElementById('game-screen').classList.add('hidden');
+    const res = document.getElementById('result-screen');
+    res.classList.remove('hidden');
+    
+    document.getElementById('result-icon').textContent = isRight ? '🎉' : '😕';
+    document.getElementById('result-title').innerHTML = isRight ? 
+        '<span class="text-[#00ff9d]">ПРАВИЛЬНО!</span>' : 
+        '<span class="text-red-500">НЕПРАВИЛЬНО</span>';
+    document.getElementById('result-text').textContent = isRight ? '+50 🪙 +10 ⭐' : 'В следующий раз получится!';
+}
+
+function nextQuestion() {
+    currentQuestionIdx++;
+    const totalQ = allQuestions[currentLevelNum-1].questions.length;
+    
+    if (currentQuestionIdx < totalQ) {
+        document.getElementById('result-screen').classList.add('hidden');
+        document.getElementById('game-screen').classList.remove('hidden');
+        loadQuestion();
+    } else {
+        backToLevels();
+    }
+}
+
+function backToLevels() {
+    document.getElementById('game-screen').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    document.getElementById('levels-screen').classList.remove('hidden');
+    renderLevels();
+}
+
+function showLivesModal() {
+    alert(`У тебя ${player.lives} жизней ❤️\n(в полной версии здесь будет модалка)`);
+}
+
+function showShop() {
+    alert('Магазин открыт (в полной версии здесь будут покупки)');
+}
+
+// ==================== СТАРТ ====================
 window.onload = () => {
-    loadData();
+    load();
     renderHeader();
     renderLevels();
-    
-    // Показываем ежедневный бонус при первом входе за день
-    setTimeout(() => {
-        if (Math.random() > 0.6) alert("🎁 Ежедневный бонус доступен!");
-    }, 800);
-    
-    console.log("%cВикторина PRO — исправленная версия загружена ✅", "color:#00ff9d; font-size:14px");
 };
 </script>
-
 </body>
-                </html>
+    </html>

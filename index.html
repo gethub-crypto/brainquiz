@@ -1,173 +1,326 @@
-<!DOCTYPE html><html>
+<!DOCTYPE html>
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Quiz Game</title><style>
-body {background:#0f172a;font-family:Arial;color:white;text-align:center;margin:0}
-.topbar{display:flex;justify-content:space-between;padding:12px 20px;font-size:18px}
-#shopBtn{background:#f59e0b;border:none;padding:8px 14px;border-radius:8px;color:white}
-#map{display:flex;flex-wrap:wrap;justify-content:center;padding:20px}
-.levelBtn{width:70px;height:70px;margin:10px;border-radius:50%;border:none;font-size:20px;background:#1e293b;color:white}
-#game{display:none;padding:20px}
-.answer{display:block;width:90%;margin:10px auto;padding:14px;font-size:18px;border:none;border-radius:10px;background:#334155;color:white}
-#reward{display:none;padding:20px}
-#backBtn{margin-bottom:10px;padding:8px;border:none;border-radius:8px;background:#475569;color:white}
-#timer{font-size:14px;opacity:.8}
-#popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
-.popup-box{background:#1e293b;padding:20px;border-radius:12px;width:90%;max-width:320px}
-.popup-box button{margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px}
-</style></head>
-<body><div class="topbar">
-<div>❤️ <span id="lives"></span><br><span id="timer"></span></div>
-<button id="shopBtn" onclick="openShop()">Shop</button>
-<div>🪙 <span id="coins"></span></div>
-</div><div id="map"></div><div id="game">
-<button id="backBtn" onclick="goToMap()">← Back</button>
-<div id="question"></div>
-<div id="answers"></div>
-</div><div id="reward">
-<h2>Level Complete</h2>
-<p>You earned <span id="rewardCoins"></span></p>
-<button onclick="doubleReward()">x2 Reward</button>
-<button onclick="nextLevel()">Next</button>
-</div><div id="popup"><div class="popup-box" id="popupContent"></div></div><script>
-const MAX_LIVES=3;
-const LIFE_TIME=30*60*1000;
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Викторина PRO</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Плавные переходы и неоновые эффекты */
+  .screen { display: none; min-height: 100vh; transition: all 0.3s ease; }
+  .active { display: block; }
+  .btn-neon {
+    @apply bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 text-white font-bold py-2 px-4 rounded-lg shadow-lg;
+    transition: transform 0.2s;
+  }
+  .btn-neon:hover { transform: scale(1.05); }
+  .heart { color: red; font-size: 1.5rem; }
+  .coin { color: gold; font-weight: bold; }
+  .popup { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); display:flex; align-items:center; justify-content:center; z-index:50; display:none; }
+  .popup-content { background:#111; padding:20px; border-radius:15px; text-align:center; color:white; width:80%; max-width:400px; }
+</style>
+</head>
+<body class="bg-gray-900 text-white font-sans overflow-x-hidden">
 
-let lives=3;
-let coins=0;
-let lastLifeTime=Date.now();
-let currentQuestionData=null;
+<!-- ======================== Приветственный экран ======================== -->
+<div id="welcomeScreen" class="screen active flex flex-col items-center justify-center p-4">
+  <h1 class="text-4xl font-extrabold mb-6">Викторина PRO</h1>
+  <button class="btn-neon" onclick="startGame()">Начать игру</button>
+</div>
 
-const livesUI=document.getElementById("lives");
-const coinsUI=document.getElementById("coins");
-const timerUI=document.getElementById("timer");
+<!-- ======================== Главное меню ======================== -->
+<div id="mainMenu" class="screen flex flex-col items-center justify-center p-4">
+  <h1 class="text-3xl font-bold mb-4">Главное меню</h1>
+  <button class="btn-neon mb-2 w-3/4" onclick="showScreen('levelsScreen')">Выбрать уровень</button>
+  <button class="btn-neon mb-2 w-3/4" onclick="showScreen('shopScreen')">Магазин</button>
+  <button class="btn-neon mb-2 w-3/4" onclick="showDailyBonus()">Ежедневный бонус</button>
+  <button class="btn-neon mb-2 w-3/4" onclick="showScreen('settingsScreen')">Настройки</button>
+</div>
 
-// SAVE / LOAD
-function save(){
-localStorage.setItem("lives",lives);
-localStorage.setItem("coins",coins);
-localStorage.setItem("lastLifeTime",lastLifeTime);
+<!-- ======================== Выбор уровня ======================== -->
+<div id="levelsScreen" class="screen flex flex-col items-center p-4">
+  <h2 class="text-2xl font-bold mb-4">Выберите уровень</h2>
+  <div id="levelsContainer" class="grid grid-cols-4 gap-2 w-full"></div>
+  <button class="btn-neon mt-4 w-2/3" onclick="showScreen('mainMenu')">Назад</button>
+</div>
+
+<!-- ======================== Игровой экран ======================== -->
+<div id="gameScreen" class="screen flex flex-col p-4">
+  <div class="flex justify-between items-center mb-4">
+    <div id="livesDisplay" class="text-xl"></div>
+    <div id="coinsDisplay" class="text-xl"></div>
+    <div id="xpDisplay" class="text-xl"></div>
+  </div>
+  <div id="questionContainer" class="mb-4 text-center text-lg"></div>
+  <div id="answersContainer" class="grid grid-cols-2 gap-2"></div>
+  <button class="btn-neon mt-4 w-1/2 self-center" onclick="showScreen('levelsScreen')">Назад</button>
+</div>
+
+<!-- ======================== Экран результата ======================== -->
+<div id="resultScreen" class="screen flex flex-col items-center justify-center p-4">
+  <h2 id="resultTitle" class="text-3xl font-bold mb-4"></h2>
+  <p id="resultText" class="mb-4"></p>
+  <button class="btn-neon mb-2 w-2/3" onclick="backToLevels()">Назад к уровням</button>
+  <button class="btn-neon mb-2 w-2/3" onclick="showScreen('mainMenu')">Главное меню</button>
+</div>
+
+<!-- ======================== Магазин ======================== -->
+<div id="shopScreen" class="screen flex flex-col items-center p-4">
+  <h2 class="text-2xl font-bold mb-4">Магазин</h2>
+  <div class="grid grid-cols-1 gap-2 w-full">
+    <button class="btn-neon w-full" onclick="buyItem('life1')">+1 жизнь — 150 монет</button>
+    <button class="btn-neon w-full" onclick="buyItem('life3')">+3 жизни — 400 монет</button>
+    <button class="btn-neon w-full" onclick="buyItem('doubleCoins')">Удвоитель монет на 5 уровней — 300 монет</button>
+    <button class="btn-neon w-full" onclick="buyItem('skipLevel')">Скип уровня — 500 монет</button>
+  </div>
+  <button class="btn-neon mt-4 w-2/3" onclick="showScreen('mainMenu')">Назад</button>
+</div>
+
+<!-- ======================== Ежедневный бонус ======================== -->
+<div id="dailyBonusScreen" class="screen flex flex-col items-center justify-center p-4">
+  <h2 class="text-2xl font-bold mb-4">Ежедневный бонус</h2>
+  <p id="dailyBonusText" class="mb-4"></p>
+  <button class="btn-neon w-2/3" onclick="closeDailyBonus()">Получить</button>
+</div>
+
+<!-- ======================== Настройки ======================== -->
+<div id="settingsScreen" class="screen flex flex-col items-center justify-center p-4">
+  <h2 class="text-2xl font-bold mb-4">Настройки</h2>
+  <button class="btn-neon mb-2 w-2/3" onclick="toggleSound()">Звук: <span id="soundStatus"></span></button>
+  <button class="btn-neon mb-2 w-2/3" onclick="resetProgress()">Сбросить прогресс</button>
+  <button class="btn-neon mt-4 w-2/3" onclick="showScreen('mainMenu')">Назад</button>
+</div>
+
+<!-- ======================== Попапы ======================== -->
+<div id="popup" class="popup">
+  <div class="popup-content">
+    <p id="popupText" class="mb-4"></p>
+    <button class="btn-neon w-2/3" onclick="closePopup()">Ок</button>
+  </div>
+</div>
+
+<script>
+// ======================== Данные игры ========================
+let gameData = {
+  coins: parseInt(localStorage.getItem('coins')) || 0,
+  xp: parseInt(localStorage.getItem('xp')) || 0,
+  lives: parseInt(localStorage.getItem('lives')) || 3,
+  lastLifeTime: localStorage.getItem('lastLifeTime') || null,
+  sound: localStorage.getItem('sound') === 'false' ? false : true,
+  currentLevel: 1,
+  currentQuestionIndex: 0,
+  doubleCoinsActive: false,
+  streak: parseInt(localStorage.getItem('streak')) || 1,
+  dailyBonusClaimed: localStorage.getItem('dailyBonusClaimed') || null
+};
+
+// ======================== Вопросы (пример, 200+) ========================
+let questions = [];
+for(let lvl=1; lvl<=20; lvl++){
+  questions[lvl] = [];
+  for(let q=1;q<=10;q++){
+    questions[lvl].push({
+      question: `Вопрос ${q} уровня ${lvl}?`,
+      answers: [`A${q}`, `B${q}`, `C${q}`, `D${q}`],
+      correct: Math.floor(Math.random()*4)
+    });
+  }
 }
 
-function load(){
-let l=localStorage.getItem("lives");
-let c=localStorage.getItem("coins");
-let t=localStorage.getItem("lastLifeTime");
-if(l) lives=parseInt(l);
-if(c) coins=parseInt(c);
-if(t) lastLifeTime=parseInt(t);
+// ======================== Вспомогательные функции ========================
+function saveData(){
+  localStorage.setItem('coins', gameData.coins);
+  localStorage.setItem('xp', gameData.xp);
+  localStorage.setItem('lives', gameData.lives);
+  localStorage.setItem('lastLifeTime', gameData.lastLifeTime);
+  localStorage.setItem('sound', gameData.sound);
+  localStorage.setItem('streak', gameData.streak);
+  localStorage.setItem('dailyBonusClaimed', gameData.dailyBonusClaimed);
 }
 
-function updateUI(){
-livesUI.innerText=lives;
-coinsUI.innerText=coins;
-save();
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  updateDisplays();
 }
 
-function updateTimer(){
-if(lives>=MAX_LIVES){timerUI.innerText="Full";return}
-let now=Date.now();
-let diff=LIFE_TIME-(now-lastLifeTime);
-if(diff<=0){lives++;lastLifeTime=now;updateUI();return}
-let s=Math.floor(diff/1000)%60;
-let m=Math.floor(diff/1000/60);
-timerUI.innerText=`${m}:${s.toString().padStart(2,'0')}`;
-}
-setInterval(updateTimer,1000);
-
-function showPopup(html){document.getElementById("popupContent").innerHTML=html;document.getElementById("popup").style.display="flex"}
-function closePopup(){document.getElementById("popup").style.display="none"}
-
-function createLevels(){
-let map=document.getElementById("map");
-for(let i=1;i<=20;i++){
-let b=document.createElement("button");
-b.className="levelBtn";
-b.innerText=i;
-b.onclick=startLevel;
-map.appendChild(b);
-}
+function updateDisplays(){
+  document.getElementById('livesDisplay').innerHTML = '❤️'.repeat(gameData.lives);
+  document.getElementById('coinsDisplay').innerHTML = `💰 ${gameData.coins}`;
+  document.getElementById('xpDisplay').innerHTML = `XP: ${gameData.xp}`;
 }
 
-function startLevel(){
-document.getElementById("map").style.display="none";
-document.getElementById("game").style.display="block";
-loadQuestion();
+// ======================== Жизни и таймер восстановления ========================
+function recoverLives(){
+  if(gameData.lives<3){
+    let last = gameData.lastLifeTime ? new Date(gameData.lastLifeTime) : new Date();
+    let now = new Date();
+    let diff = Math.floor((now - last)/1000);
+    let recovered = Math.floor(diff/1800); // 1800 секунд = 30 минут
+    if(recovered>0){
+      gameData.lives = Math.min(3, gameData.lives + recovered);
+      gameData.lastLifeTime = new Date(now - (diff%1800)*1000).toISOString();
+      saveData();
+    }
+  }
+}
+setInterval(recoverLives,1000);
+
+// ======================== Запуск игры ========================
+function startGame(){
+  recoverLives();
+  showDailyBonus();
+  showScreen('mainMenu');
 }
 
-function goToMap(){
-document.getElementById("game").style.display="none";
-document.getElementById("map").style.display="flex";
+// ======================== Выбор уровня ========================
+function showLevels(){
+  const container = document.getElementById('levelsContainer');
+  container.innerHTML = '';
+  for(let i=1;i<=20;i++){
+    let unlocked = gameData.xp >= (i-1)*100;
+    let btn = document.createElement('button');
+    btn.className = 'btn-neon';
+    btn.innerText = unlocked ? `Уровень ${i}` : `🔒 Уровень ${i}`;
+    btn.disabled = !unlocked;
+    btn.onclick = ()=>startLevel(i);
+    container.appendChild(btn);
+  }
+}
+showLevels();
+
+// ======================== Игровой процесс ========================
+function startLevel(level){
+  if(gameData.lives<=0){
+    showPopup('У вас нет жизней! Смотрите рекламу или ждите восстановление.');
+    return;
+  }
+  gameData.currentLevel = level;
+  gameData.currentQuestionIndex = 0;
+  gameData.lives--;
+  gameData.lastLifeTime = new Date().toISOString();
+  saveData();
+  showScreen('gameScreen');
+  showQuestion();
 }
 
-function loadQuestion(){
-let a=Math.floor(Math.random()*10);
-let b=Math.floor(Math.random()*10);
-let correct=a+b;
-let answers=[correct,correct+1,correct-1,correct+2].sort(()=>Math.random()-0.5);
-currentQuestionData={answers,correct:answers.indexOf(correct)};
-document.getElementById("question").innerText=`${a}+${b}`;
-let div=document.getElementById("answers");div.innerHTML="";
-answers.forEach((ans,i)=>{
-let btn=document.createElement("button");
-btn.className="answer";btn.innerText=ans;
-btn.onclick=()=>checkAnswer(i);
-div.appendChild(btn);
-});
+function showQuestion(){
+  const q = questions[gameData.currentLevel][gameData.currentQuestionIndex];
+  document.getElementById('questionContainer').innerText = q.question;
+  const answersContainer = document.getElementById('answersContainer');
+  answersContainer.innerHTML = '';
+  q.answers.forEach((a,i)=>{
+    let btn = document.createElement('button');
+    btn.className = 'btn-neon';
+    btn.innerText = a;
+    btn.onclick = ()=>checkAnswer(i);
+    answersContainer.appendChild(btn);
+  });
 }
 
-function checkAnswer(i){
-if(i===currentQuestionData.correct){finishLevel()}
-else{
-showPopup(`
-<h3>Wrong</h3>
-<button onclick="useCoins()">50 coins</button>
-<button onclick="watchAd()">Ad</button>
-<button onclick="loseLife()">Lose life</button>
-`);
-}
-}
-
-function useCoins(){
-if(coins>=50){coins-=50;closePopup();updateUI()}
-else showPopup(`<h3>No coins</h3><button onclick="closePopup()">OK</button>`)
-}
-
-function watchAd(){closePopup();showPopup(`<h3>Ad done</h3><button onclick="closePopup()">OK</button>`)}
-
-function loseLife(){
-lives--;lastLifeTime=Date.now();updateUI();closePopup();
-if(lives<=0){
-showPopup(`
-<h2>Game Over</h2>
-<button onclick="reviveAd()">Revive (Ad)</button>
-<button onclick="location.reload()">Restart</button>
-`);
-}
+function checkAnswer(idx){
+  const q = questions[gameData.currentLevel][gameData.currentQuestionIndex];
+  if(idx===q.correct){
+    gameData.coins += gameData.doubleCoinsActive ? 100 : 50;
+    gameData.xp += 10;
+    showPopup('✅ Правильно!');
+  } else {
+    showPopup('❌ Неправильно!');
+  }
+  gameData.currentQuestionIndex++;
+  saveData();
+  if(gameData.currentQuestionIndex>=10){
+    showResult();
+  } else {
+    showQuestion();
+  }
 }
 
-// NEW: REVIVE
-function reviveAd(){
-lives=1;
-lastLifeTime=Date.now();
-updateUI();
-closePopup();
+// ======================== Результат уровня ========================
+function showResult(){
+  let title = 'Уровень пройден!';
+  let text = `Вы получили 💰${gameData.coins} и XP: ${gameData.xp}`;
+  document.getElementById('resultTitle').innerText = title;
+  document.getElementById('resultText').innerText = text;
+  showScreen('resultScreen');
 }
 
-function finishLevel(){
-document.getElementById("game").style.display="none";
-document.getElementById("reward").style.display="block";
-document.getElementById("rewardCoins").innerText=20;
+// ======================== Магазин ========================
+function buyItem(item){
+  let cost=0;
+  if(item==='life1'){ cost=150; if(gameData.coins>=cost){gameData.coins-=cost; gameData.lives++; showPopup('Вы купили +1 жизнь!'); }}
+  if(item==='life3'){ cost=400; if(gameData.coins>=cost){gameData.coins-=cost; gameData.lives+=3; showPopup('Вы купили +3 жизни!'); }}
+  if(item==='doubleCoins'){ cost=300; if(gameData.coins>=cost){gameData.coins-=cost; gameData.doubleCoinsActive=true; showPopup('Удвоение монет активировано на 5 уровней!'); }}
+  if(item==='skipLevel'){ cost=500; if(gameData.coins>=cost){gameData.coins-=cost; gameData.currentQuestionIndex=10; showResult(); }}
+  saveData();
+  updateDisplays();
 }
 
-function doubleReward(){coins+=40;updateUI();showPopup(`<h3>x2</h3><button onclick="closePopup()">OK</button>`)}
+// ======================== Ежедневный бонус ========================
+const dailyRewards = [
+  {coins:100, lives:0},
+  {coins:150, lives:0},
+  {coins:200, lives:1},
+  {coins:250, lives:0},
+  {coins:300, lives:0},
+  {coins:400, lives:2},
+  {coins:500, lives:3, double:true}
+];
 
-function nextLevel(){coins+=20;updateUI();document.getElementById("reward").style.display="none";document.getElementById("map").style.display="flex"}
+function showDailyBonus(){
+  let today = new Date().toDateString();
+  if(gameData.dailyBonusClaimed===today) return showScreen('mainMenu');
+  let dayIndex = (gameData.streak-1)%7;
+  let reward = dailyRewards[dayIndex];
+  document.getElementById('dailyBonusText').innerText = `День ${gameData.streak}:\n💰 ${reward.coins} монет, ❤️ ${reward.lives}${reward.double?' и удвоение монет':''}`;
+  showScreen('dailyBonusScreen');
+}
 
-function openShop(){showPopup(`<h3>Shop</h3><button onclick="closePopup()">Close</button>`)}
+function closeDailyBonus(){
+  let today = new Date().toDateString();
+  let dayIndex = (gameData.streak-1)%7;
+  let reward = dailyRewards[dayIndex];
+  gameData.coins += reward.coins;
+  gameData.lives += reward.lives;
+  if(reward.double) gameData.doubleCoinsActive = true;
+  gameData.dailyBonusClaimed = today;
+  gameData.streak++;
+  saveData();
+  updateDisplays();
+  showScreen('mainMenu');
+}
 
-load();
-createLevels();
-updateUI();
-</script></body>
-</html>
+// ======================== Попап ========================
+function showPopup(text){
+  document.getElementById('popupText').innerText = text;
+  document.getElementById('popup').style.display='flex';
+}
+function closePopup(){
+  document.getElementById('popup').style.display='none';
+}
+
+// ======================== Настройки ========================
+function toggleSound(){
+  gameData.sound = !gameData.sound;
+  document.getElementById('soundStatus').innerText = gameData.sound?'Вкл':'Выкл';
+  saveData();
+}
+toggleSound();
+
+function resetProgress(){
+  if(confirm('Вы уверены, что хотите сбросить весь прогресс?')){
+    localStorage.clear();
+    location.reload();
+  }
+}
+
+// ======================== Назад из результата ========================
+function backToLevels(){
+  showLevels();
+  showScreen('levelsScreen');
+}
+
+updateDisplays();
+</script>
+</body>
+  </html>

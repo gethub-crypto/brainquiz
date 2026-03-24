@@ -2,284 +2,172 @@
 <head>
 <meta charset="UTF-8">
 <title>Quiz Game</title><style>
-body {
-    background: #0f172a;
-    font-family: Arial, sans-serif;
-    color: white;
-    text-align: center;
-    margin: 0;
-}
-
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 20px;
-    font-size: 20px;
-}
-
-#shopBtn {
-    background: #f59e0b;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 8px;
-    color: white;
-    cursor: pointer;
-}
-
-#map {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    padding: 20px;
-}
-
-.levelBtn {
-    width: 70px;
-    height: 70px;
-    margin: 10px;
-    border-radius: 50%;
-    border: none;
-    font-size: 20px;
-    background: #1e293b;
-    color: white;
-    cursor: pointer;
-}
-
-.super {
-    background: gold;
-    color: black;
-}
-
-#game {
-    display: none;
-    padding: 20px;
-}
-
-.answer {
-    display: block;
-    width: 90%;
-    margin: 10px auto;
-    padding: 14px;
-    font-size: 18px;
-    border: none;
-    border-radius: 10px;
-    background: #334155;
-    color: white;
-    cursor: pointer;
-}
-
-#reward {
-    display: none;
-    padding: 20px;
-}
-
-/* POPUP */
-#popup {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-
-.popup-box {
-    background: #1e293b;
-    padding: 20px;
-    border-radius: 12px;
-    width: 90%;
-    max-width: 320px;
-}
-
-.popup-box button {
-    margin-top: 10px;
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
+body {background:#0f172a;font-family:Arial;color:white;text-align:center;margin:0}
+.topbar{display:flex;justify-content:space-between;padding:12px 20px;font-size:18px}
+#shopBtn{background:#f59e0b;border:none;padding:8px 14px;border-radius:8px;color:white}
+#map{display:flex;flex-wrap:wrap;justify-content:center;padding:20px}
+.levelBtn{width:70px;height:70px;margin:10px;border-radius:50%;border:none;font-size:20px;background:#1e293b;color:white}
+#game{display:none;padding:20px}
+.answer{display:block;width:90%;margin:10px auto;padding:14px;font-size:18px;border:none;border-radius:10px;background:#334155;color:white}
+#reward{display:none;padding:20px}
+#backBtn{margin-bottom:10px;padding:8px;border:none;border-radius:8px;background:#475569;color:white}
+#timer{font-size:14px;opacity:.8}
+#popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;justify-content:center;align-items:center}
+.popup-box{background:#1e293b;padding:20px;border-radius:12px;width:90%;max-width:320px}
+.popup-box button{margin-top:10px;width:100%;padding:10px;border:none;border-radius:8px}
 </style></head>
 <body><div class="topbar">
-    <div>❤️ <span id="lives">3</span></div>
-    <button id="shopBtn" onclick="openShop()">Shop</button>
-    <div>🪙 <span id="coins">0</span></div>
+<div>❤️ <span id="lives"></span><br><span id="timer"></span></div>
+<button id="shopBtn" onclick="openShop()">Shop</button>
+<div>🪙 <span id="coins"></span></div>
 </div><div id="map"></div><div id="game">
-    <div id="levelTitle"></div>
-    <div id="question"></div>
-    <div id="answers"></div>
+<button id="backBtn" onclick="goToMap()">← Back</button>
+<div id="question"></div>
+<div id="answers"></div>
 </div><div id="reward">
-    <h2>Level Complete</h2>
-    <p>You earned <span id="rewardCoins"></span> coins</p>
-    <button onclick="doubleReward()">x2 Reward (Ad)</button>
-    <button onclick="nextLevel()">Next Level</button>
-</div><!-- POPUP --><div id="popup">
-    <div class="popup-box" id="popupContent"></div>
-</div><script>
-const MAX_LIVES = 3;
-let lives = MAX_LIVES;
-let coins = 0;
-let currentLevel = 1;
-let questionIndex = 0;
-let reward = 0;
-let currentQuestionData = null;
+<h2>Level Complete</h2>
+<p>You earned <span id="rewardCoins"></span></p>
+<button onclick="doubleReward()">x2 Reward</button>
+<button onclick="nextLevel()">Next</button>
+</div><div id="popup"><div class="popup-box" id="popupContent"></div></div><script>
+const MAX_LIVES=3;
+const LIFE_TIME=30*60*1000;
 
-const livesUI = document.getElementById("lives");
-const coinsUI = document.getElementById("coins");
+let lives=3;
+let coins=0;
+let lastLifeTime=Date.now();
+let currentQuestionData=null;
 
-function updateUI() {
-    livesUI.innerText = lives;
-    coinsUI.innerText = coins;
+const livesUI=document.getElementById("lives");
+const coinsUI=document.getElementById("coins");
+const timerUI=document.getElementById("timer");
+
+// SAVE / LOAD
+function save(){
+localStorage.setItem("lives",lives);
+localStorage.setItem("coins",coins);
+localStorage.setItem("lastLifeTime",lastLifeTime);
 }
 
-function showPopup(html) {
-    document.getElementById("popupContent").innerHTML = html;
-    document.getElementById("popup").style.display = "flex";
+function load(){
+let l=localStorage.getItem("lives");
+let c=localStorage.getItem("coins");
+let t=localStorage.getItem("lastLifeTime");
+if(l) lives=parseInt(l);
+if(c) coins=parseInt(c);
+if(t) lastLifeTime=parseInt(t);
 }
 
-function closePopup() {
-    document.getElementById("popup").style.display = "none";
+function updateUI(){
+livesUI.innerText=lives;
+coinsUI.innerText=coins;
+save();
 }
 
-function createLevels() {
-    const map = document.getElementById("map");
-    for (let i = 1; i <= 20; i++) {
-        let btn = document.createElement("button");
-        btn.className = "levelBtn";
-        btn.innerText = i;
-        btn.onclick = () => startLevel(i);
-        map.appendChild(btn);
-    }
+function updateTimer(){
+if(lives>=MAX_LIVES){timerUI.innerText="Full";return}
+let now=Date.now();
+let diff=LIFE_TIME-(now-lastLifeTime);
+if(diff<=0){lives++;lastLifeTime=now;updateUI();return}
+let s=Math.floor(diff/1000)%60;
+let m=Math.floor(diff/1000/60);
+timerUI.innerText=`${m}:${s.toString().padStart(2,'0')}`;
+}
+setInterval(updateTimer,1000);
+
+function showPopup(html){document.getElementById("popupContent").innerHTML=html;document.getElementById("popup").style.display="flex"}
+function closePopup(){document.getElementById("popup").style.display="none"}
+
+function createLevels(){
+let map=document.getElementById("map");
+for(let i=1;i<=20;i++){
+let b=document.createElement("button");
+b.className="levelBtn";
+b.innerText=i;
+b.onclick=startLevel;
+map.appendChild(b);
+}
 }
 
-function startLevel(level) {
-    currentLevel = level;
-    questionIndex = 0;
-    document.getElementById("map").style.display = "none";
-    document.getElementById("game").style.display = "block";
-    loadQuestion();
+function startLevel(){
+document.getElementById("map").style.display="none";
+document.getElementById("game").style.display="block";
+loadQuestion();
 }
 
-function loadQuestion() {
-    if (questionIndex >= 3) return finishLevel();
-
-    let a = Math.floor(Math.random() * 10);
-    let b = Math.floor(Math.random() * 10);
-    let correct = a + b;
-
-    let answers = [correct, correct+1, correct-1, correct+2].sort(()=>Math.random()-0.5);
-
-    currentQuestionData = {answers, correct: answers.indexOf(correct)};
-
-    document.getElementById("question").innerText = `${a} + ${b}`;
-
-    let div = document.getElementById("answers");
-    div.innerHTML = "";
-
-    answers.forEach((ans,i)=>{
-        let btn = document.createElement("button");
-        btn.className = "answer";
-        btn.innerText = ans;
-        btn.onclick = ()=>checkAnswer(i);
-        div.appendChild(btn);
-    });
+function goToMap(){
+document.getElementById("game").style.display="none";
+document.getElementById("map").style.display="flex";
 }
 
-function checkAnswer(i) {
-    if (i === currentQuestionData.correct) {
-        questionIndex++;
-        loadQuestion();
-    } else {
-        showPopup(`
-            <h3>Wrong answer</h3>
-            <button onclick="useCoins()">Continue (50 coins)</button>
-            <button onclick="watchAd()">Watch Ad</button>
-            <button onclick="loseLife()">Lose Life</button>
-        `);
-    }
+function loadQuestion(){
+let a=Math.floor(Math.random()*10);
+let b=Math.floor(Math.random()*10);
+let correct=a+b;
+let answers=[correct,correct+1,correct-1,correct+2].sort(()=>Math.random()-0.5);
+currentQuestionData={answers,correct:answers.indexOf(correct)};
+document.getElementById("question").innerText=`${a}+${b}`;
+let div=document.getElementById("answers");div.innerHTML="";
+answers.forEach((ans,i)=>{
+let btn=document.createElement("button");
+btn.className="answer";btn.innerText=ans;
+btn.onclick=()=>checkAnswer(i);
+div.appendChild(btn);
+});
 }
 
-function useCoins() {
-    if (coins >= 50) {
-        coins -= 50;
-        closePopup();
-        updateUI();
-    } else {
-        showPopup(`<h3>Not enough coins</h3><button onclick="closePopup()">OK</button>`);
-    }
+function checkAnswer(i){
+if(i===currentQuestionData.correct){finishLevel()}
+else{
+showPopup(`
+<h3>Wrong</h3>
+<button onclick="useCoins()">50 coins</button>
+<button onclick="watchAd()">Ad</button>
+<button onclick="loseLife()">Lose life</button>
+`);
+}
 }
 
-function watchAd() {
-    closePopup();
-    showPopup(`<h3>Ad watched</h3><button onclick="closePopup()">Continue</button>`);
+function useCoins(){
+if(coins>=50){coins-=50;closePopup();updateUI()}
+else showPopup(`<h3>No coins</h3><button onclick="closePopup()">OK</button>`)
 }
 
-function loseLife() {
-    lives--;
-    updateUI();
-    closePopup();
+function watchAd(){closePopup();showPopup(`<h3>Ad done</h3><button onclick="closePopup()">OK</button>`)}
 
-    if (lives <= 0) {
-        showPopup(`
-            <h2>Game Over</h2>
-            <button onclick="location.reload()">Restart</button>
-        `);
-    }
+function loseLife(){
+lives--;lastLifeTime=Date.now();updateUI();closePopup();
+if(lives<=0){
+showPopup(`
+<h2>Game Over</h2>
+<button onclick="reviveAd()">Revive (Ad)</button>
+<button onclick="location.reload()">Restart</button>
+`);
+}
 }
 
-function finishLevel() {
-    document.getElementById("game").style.display = "none";
-    document.getElementById("reward").style.display = "block";
-    reward = 20;
-    document.getElementById("rewardCoins").innerText = reward;
+// NEW: REVIVE
+function reviveAd(){
+lives=1;
+lastLifeTime=Date.now();
+updateUI();
+closePopup();
 }
 
-function doubleReward() {
-    coins += reward * 2;
-    reward = 0;
-    updateUI();
-    showPopup(`<h3>Reward doubled!</h3><button onclick="closePopup()">OK</button>`);
+function finishLevel(){
+document.getElementById("game").style.display="none";
+document.getElementById("reward").style.display="block";
+document.getElementById("rewardCoins").innerText=20;
 }
 
-function nextLevel() {
-    coins += reward;
-    reward = 0;
-    updateUI();
-    document.getElementById("reward").style.display = "none";
-    document.getElementById("map").style.display = "flex";
-}
+function doubleReward(){coins+=40;updateUI();showPopup(`<h3>x2</h3><button onclick="closePopup()">OK</button>`)}
 
-function openShop() {
-    showPopup(`
-        <h3>Shop</h3>
-        <button onclick="buySkip()">Skip (100)</button>
-        <button onclick="buyHint()">Hint (200)</button>
-        <button onclick="closePopup()">Close</button>
-    `);
-}
+function nextLevel(){coins+=20;updateUI();document.getElementById("reward").style.display="none";document.getElementById("map").style.display="flex"}
 
-function buySkip() {
-    if (coins < 100) return showPopup(`<h3>Not enough coins</h3><button onclick="closePopup()">OK</button>`);
-    coins -= 100;
-    questionIndex++;
-    closePopup();
-    updateUI();
-    loadQuestion();
-}
+function openShop(){showPopup(`<h3>Shop</h3><button onclick="closePopup()">Close</button>`)}
 
-function buyHint() {
-    if (coins < 200) return showPopup(`<h3>Not enough coins</h3><button onclick="closePopup()">OK</button>`);
-    coins -= 200;
-    showPopup(`<h3>Correct: ${currentQuestionData.answers[currentQuestionData.correct]}</h3><button onclick="closePopup()">OK</button>`);
-    updateUI();
-}
-
+load();
 createLevels();
 updateUI();
 </script></body>
-  </html>
+</html>

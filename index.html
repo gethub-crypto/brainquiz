@@ -3,241 +3,479 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Викторина PRO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Crystal Match</title>
     <style>
-        body { font-family: system-ui, sans-serif; }
-        .neon { text-shadow: 0 0 15px #00ff9d, 0 0 30px #00ff9d; }
-        .level-card { transition: all 0.25s ease; }
-        .level-card:active { transform: scale(0.92); }
+        @font-face {
+            font-family: 'Neon';
+            src: local('Arial');
+        }
+        :root {
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-purple: #aa00ff;
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: linear-gradient(180deg, #0a001f, #220033);
+            color: #fff;
+            font-family: 'Neon', system-ui, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .neon-text {
+            text-shadow: 
+                0 0 8px var(--neon-cyan),
+                0 0 16px var(--neon-cyan),
+                0 0 24px var(--neon-pink);
+        }
+        #header {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(20,0,40,0.7);
+            border-bottom: 4px solid var(--neon-cyan);
+            box-shadow: 0 0 25px var(--neon-cyan);
+            z-index: 10;
+        }
+        .header-block {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+        .hearts {
+            font-size: 28px;
+            letter-spacing: -4px;
+        }
+        #board-wrapper {
+            position: relative;
+            margin: 15px auto;
+            width: 480px;
+            height: 480px;
+            background: #1a0033;
+            border-radius: 24px;
+            box-shadow: 
+                0 0 40px var(--neon-cyan),
+                0 0 60px var(--neon-pink),
+                inset 0 0 30px #000;
+            padding: 12px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+            overflow: hidden;
+        }
+        .gem {
+            background: radial-gradient(circle at 30% 25%, #fff 10%, var(--gem-color) 50%, #111 90%);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 42px;
+            color: #fff;
+            text-shadow: 
+                0 0 12px #fff,
+                0 0 20px var(--gem-color);
+            box-shadow: 
+                0 4px 12px rgba(0,0,0,0.6),
+                0 0 18px var(--gem-color),
+                inset 0 0 12px #fff;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            position: relative;
+            user-select: none;
+        }
+        .gem.red     { --gem-color: #ff3b5c; }
+        .gem.blue    { --gem-color: #3b9eff; }
+        .gem.green   { --gem-color: #3bff9e; }
+        .gem.yellow  { --gem-color: #ffe53b; }
+        .gem.purple  { --gem-color: #c23bff; }
+        .gem.orange  { --gem-color: #ff9e3b; }
+        .gem.bomb-color { --gem-color: #ffffff; background: radial-gradient(circle, #ff00ff, #00ffff, #ffff00); animation: rainbow 1.5s linear infinite; }
+        .gem.bomb-line  { --gem-color: #ffff00; box-shadow: 0 0 25px #ffff00; }
+        .gem.selected {
+            transform: scale(1.2);
+            box-shadow: 0 0 35px #ffff00;
+        }
+        .gem.explode {
+            animation: explodeAnim 420ms ease forwards;
+        }
+        @keyframes explodeAnim {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.6); }
+            100% { transform: scale(0.1); opacity: 0; }
+        }
+        @keyframes fallAnim {
+            0%   { transform: translateY(-120px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,0,35,0.92);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: modalFade 0.3s ease;
+        }
+        .modal-content {
+            background: linear-gradient(#1f0033, #0f0022);
+            border: 5px solid var(--neon-cyan);
+            border-radius: 22px;
+            box-shadow: 0 0 50px var(--neon-cyan);
+            width: 92%;
+            max-width: 420px;
+            padding: 30px 25px;
+            text-align: center;
+            animation: modalPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        @keyframes modalFade { from {opacity:0;} to {opacity:1;} }
+        @keyframes modalPop { from {transform:scale(0.6);} to {transform:scale(1);} }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(90deg, var(--neon-cyan), #00ccff);
+            color: #000;
+            font-weight: 700;
+            font-size: 18px;
+            padding: 14px 32px;
+            margin: 8px 6px;
+            border-radius: 50px;
+            box-shadow: 0 0 25px var(--neon-cyan);
+            transition: all 0.2s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn:hover { transform: scale(1.08); box-shadow: 0 0 35px #ffff00; }
+        .btn-small {
+            padding: 8px 18px;
+            font-size: 15px;
+        }
+        .progress-bar {
+            height: 18px;
+            background: #110022;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: inset 0 0 10px #000;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            transition: width 8000ms linear;
+        }
+        .ad-text {
+            font-size: 22px;
+            margin-bottom: 12px;
+            text-shadow: 0 0 15px #00ffff;
+        }
+        .inventory {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        .inventory-item {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: #220033;
+            border: 3px solid var(--neon-cyan);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 0 15px var(--neon-cyan);
+            position: relative;
+        }
+        .inventory-item .count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ff00ff;
+            color: #000;
+            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px #ff00ff;
+        }
     </style>
 </head>
-<body class="bg-black text-white min-h-screen">
-
-<div class="max-w-[420px] mx-auto bg-[#0a0a0a] min-h-screen flex flex-col">
-
+<body>
     <!-- HEADER -->
-    <div class="bg-[#111113] border-b border-[#00ff9d]/30 px-4 py-3 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-            <div class="w-9 h-9 bg-[#1a1a1e] rounded-2xl flex items-center justify-center text-3xl">🧠</div>
-            <div class="text-3xl font-bold tracking-wider neon text-[#00ff9d]">PRO</div>
+    <div id="header">
+        <div class="header-block neon-text">
+            <span id="level-text">УРОВЕНЬ <span id="level-num">1</span></span>
         </div>
-        <div class="flex gap-4">
-            <div class="flex items-center bg-[#1a1a1e] px-4 py-1 rounded-3xl gap-1.5">
-                <span class="text-yellow-400">⭐</span>
-                <span id="xp">1240</span>
-            </div>
-            <div class="flex items-center bg-[#1a1a1e] px-4 py-1 rounded-3xl gap-1.5">
-                <span class="text-yellow-400">🪙</span>
-                <span id="coins">850</span>
-            </div>
-            <div id="lives" onclick="showLivesModal()" class="flex items-center bg-[#1a1a1e] px-3 py-1 rounded-3xl gap-1 cursor-pointer text-xl"></div>
+        <div class="header-block">
+            <span id="lives-container" class="hearts"></span>
+            <span id="life-timer" style="font-size:13px; margin-left:4px; color:#ff0;"></span>
+        </div>
+        <div class="header-block neon-text">
+            <span id="score-text">0</span>
+        </div>
+        <div class="header-block neon-text">
+            💎 <span id="coin-text">250</span>
+        </div>
+        <button onclick="openShop()" class="btn btn-small">🛒</button>
+    </div>
+
+    <!-- GAME BOARD -->
+    <div id="board-wrapper"></div>
+
+    <!-- CONTROLS -->
+    <div style="width:480px; margin:0 auto; display:flex; justify-content:space-between; padding:0 10px;">
+        <button onclick="pauseGame()" class="btn btn-small" style="background:#330044;">⏸ ПАУЗА</button>
+        <div class="inventory" id="inventory-bar"></div>
+        <button onclick="showLevelSelect()" class="btn btn-small" style="background:#330044;">📋 УРОВНИ</button>
+    </div>
+
+    <!-- MODALS -->
+
+    <!-- Main Menu -->
+    <div id="modal-main" class="modal" style="display:flex;">
+        <div class="modal-content">
+            <h1 class="neon-text" style="font-size:42px; margin-bottom:20px; line-height:1;">CRYSTAL<br>MATCH</h1>
+            <button onclick="startGame()" class="btn" style="width:85%; font-size:26px; margin:15px 0;">▶ ИГРАТЬ</button>
+            <button onclick="showLevelSelect()" class="btn" style="width:85%;">📋 Выбрать уровень</button>
+            <button onclick="openShop()" class="btn" style="width:85%;">🛒 Магазин</button>
+            <button onclick="showTutorial()" class="btn" style="width:85%;">❔ Как играть</button>
+            <div style="margin-top:30px; font-size:13px; opacity:0.6;">Сделано одним HTML-файлом</div>
         </div>
     </div>
 
-    <!-- ЭКРАН УРОВНЕЙ -->
-    <div id="levels-screen" class="flex-1 p-4 overflow-y-auto">
-        <div class="flex justify-between mb-6">
-            <h1 class="text-4xl font-bold">Уровни</h1>
-            <div class="bg-[#1a1a1e] px-5 py-2 rounded-3xl flex items-center gap-2 text-sm">
-                🔥 <span id="streak">3</span> дней
-            </div>
-        </div>
-
-        <div id="levels-grid" class="grid grid-cols-4 gap-3"></div>
-
-        <div class="mt-12 flex justify-center">
-            <button onclick="showShop()" 
-                    class="bg-[#00ff9d] hover:bg-[#00e68a] text-black font-bold text-xl px-10 py-5 rounded-3xl flex items-center gap-3">
-                Открыть магазин 🛒
-            </button>
+    <!-- Level Select -->
+    <div id="modal-levels" class="modal">
+        <div class="modal-content">
+            <h2 class="neon-text" style="margin-bottom:20px;">ВЫБОР УРОВНЯ</h2>
+            <div id="levels-grid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin:20px 0;"></div>
+            <button onclick="hideModal('modal-levels')" class="btn">Назад в меню</button>
         </div>
     </div>
 
-    <!-- ЭКРАН ИГРЫ -->
-    <div id="game-screen" class="flex-1 hidden flex-col">
-        <div class="p-4 flex justify-between items-center border-b border-[#00ff9d]/20">
-            <button onclick="backToLevels()" class="text-3xl">←</button>
-            <div id="level-info" class="font-bold text-lg"></div>
-            <div id="q-counter" class="bg-[#1a1a1e] px-4 py-1 rounded-3xl"></div>
+    <!-- Win -->
+    <div id="modal-win" class="modal">
+        <div class="modal-content">
+            <h2 class="neon-text" style="margin-bottom:10px;">ПОБЕДА!</h2>
+            <div id="win-stars" style="font-size:62px; margin:15px 0;"></div>
+            <p style="margin:10px 0 20px; font-size:22px;">Счёт: <span id="win-score-val" class="neon-text"></span></p>
+            <button onclick="nextLevel()" class="btn" style="width:85%;">СЛЕДУЮЩИЙ УРОВЕНЬ</button>
+            <button onclick="hideModal('modal-win');showLevelSelect()" class="btn" style="width:85%;">Меню уровней</button>
         </div>
-        
-        <div class="flex-1 p-6 flex flex-col">
-            <div id="question" class="text-2xl font-semibold text-center my-auto leading-tight"></div>
+    </div>
+
+    <!-- Lose -->
+    <div id="modal-lose" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:20px;">УВЫ, ПОРАЖЕНИЕ</h2>
+            <p style="margin-bottom:25px;">Ходы закончились</p>
+            <button onclick="watchAdReward('life')" class="btn">📺 Смотреть рекламу<br><small>+1 жизнь</small></button>
+            <button onclick="restartCurrentLevel()" class="btn">Повторить уровень</button>
+            <button onclick="hideModal('modal-lose');showLevelSelect()" class="btn">В меню</button>
+        </div>
+    </div>
+
+    <!-- Shop -->
+    <div id="modal-shop" class="modal">
+        <div class="modal-content">
+            <h2 class="neon-text">МАГАЗИН</h2>
+            <p style="margin-bottom:20px;">💎 <span id="shop-coins-val" class="neon-text"></span></p>
             
-            <div id="options" class="grid grid-cols-2 gap-3 mt-auto"></div>
+            <div onclick="buyShopItem(0)" class="btn" style="width:100%; text-align:left; display:flex; justify-content:space-between;">
+                ❤️ Extra Life <span style="color:#ff0;">100 монет</span>
+            </div>
+            <div onclick="buyShopItem(1)" class="btn" style="width:100%; text-align:left; display:flex; justify-content:space-between;">
+                🌈 Color Bomb <span style="color:#ff0;">80 монет</span>
+            </div>
+            <div onclick="buyShopItem(2)" class="btn" style="width:100%; text-align:left; display:flex; justify-content:space-between;">
+                ⚡ Line Blast <span style="color:#ff0;">70 монет</span>
+            </div>
+            <div onclick="buyShopItem(3)" class="btn" style="width:100%; text-align:left; display:flex; justify-content:space-between;">
+                💎 +500 монет <span style="color:#ff0;">бесплатно (тест)</span>
+            </div>
+            <div onclick="buyPremiumPack()" class="btn" style="background:linear-gradient(#ffd700,#ffaa00); color:#000; width:100%; margin-top:15px;">
+                ⭐ PREMIUM 1.99$<br><small>+2000 монет + 3 жизни</small>
+            </div>
+            
+            <button onclick="watchAdReward('coins')" class="btn" style="margin-top:25px; background:#00ff88;">📺 Реклама (+100 монет)</button>
+            <button onclick="hideModal('modal-shop')" class="btn" style="margin-top:8px;">Закрыть</button>
         </div>
     </div>
 
-    <!-- ЭКРАН РЕЗУЛЬТАТА -->
-    <div id="result-screen" class="flex-1 hidden flex-col items-center justify-center p-6">
-        <div id="result-icon" class="text-8xl mb-6"></div>
-        <h2 id="result-title" class="text-4xl font-bold mb-2"></h2>
-        <p id="result-text" class="text-center text-lg mb-10"></p>
-        
-        <button onclick="nextQuestion()" 
-                class="w-full max-w-xs bg-[#00ff9d] text-black font-bold py-5 rounded-3xl text-xl">Следующий вопрос</button>
-        <button onclick="backToLevels()" 
-                class="mt-4 text-gray-400">В меню уровней</button>
+    <!-- No lives -->
+    <div id="modal-nolives" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom:15px;">ЖИЗНИ ЗАКОНЧИЛИСЬ</h2>
+            <div id="nolives-timer" style="font-size:18px; margin:20px 0; color:#ff0;"></div>
+            <button onclick="watchAdReward('life')" class="btn">📺 Смотреть рекламу (+1 жизнь)</button>
+            <button onclick="hideModal('modal-nolives')" class="btn">Подождать</button>
+        </div>
     </div>
 
-</div>
+    <!-- Tutorial -->
+    <div id="modal-tutorial" class="modal">
+        <div class="modal-content">
+            <h2 class="neon-text">ПРИВЕТСТВИЕ В CRYSTAL MATCH</h2>
+            <div style="text-align:left; line-height:1.6; margin:25px 0; font-size:17px;">
+                1. Кликни по кристаллу<br>
+                2. Кликни по соседнему — они поменяются<br>
+                3. Собери 3+ одинаковых → взрыв!<br>
+                4. 4+ или 5+ дают бонусы (T-bomb, L-bomb, color bomb)<br>
+                5. Падают новые кристаллы с анимацией<br><br>
+                Проходи 10 уровней, собирай монеты и не трать все жизни!
+            </div>
+            <button onclick="hideModal('modal-tutorial')" class="btn">Понятно, начинаем!</button>
+        </div>
+    </div>
 
-<script>
-// ==================== ДАННЫЕ ====================
-let player = {
-    coins: 850,
-    xp: 1240,
-    lives: 3,
-    levelsProgress: Array.from({length: 20}, (_, i) => ({level: i+1, answered: [], completed: false}))
-};
+    <!-- Pause -->
+    <div id="modal-pause" class="modal">
+        <div class="modal-content">
+            <h2 class="neon-text" style="margin-bottom:30px;">ПАУЗА</h2>
+            <button onclick="resumeGame()" class="btn" style="width:85%;">ПРОДОЛЖИТЬ</button>
+            <button onclick="hideModal('modal-pause');showLevelSelect()" class="btn" style="width:85%;">ВЫБОР УРОВНЯ</button>
+            <button onclick="hideModal('modal-pause')" class="btn" style="width:85%; background:#660000;">ВЫЙТИ В МЕНЮ</button>
+        </div>
+    </div>
 
-let currentLevelNum = 0;
-let currentQuestionIdx = 0;
+    <!-- Fake Ad -->
+    <div id="modal-ad" class="modal">
+        <div class="modal-content" style="max-width:360px;">
+            <div class="ad-text neon-text">🔥 РЕКЛАМА ИДЁТ…</div>
+            <div class="progress-bar"><div id="ad-progress-bar" class="progress-fill"></div></div>
+            <div style="margin-top:15px; font-size:14px; opacity:0.7;">Не закрывайте вкладку</div>
+        </div>
+    </div>
 
-// Пример вопросов (по 2 на уровень для теста, можешь добавить больше)
-const allQuestions = Array.from({length: 20}, (_, lvl) => ({
-    level: lvl + 1,
-    questions: [
-        { q: `Вопрос ${lvl+1}.1 — Столица России?`, options: ["Москва","Питер","Киев","Минск"], correct: 0 },
-        { q: `Вопрос ${lvl+1}.2 — Сколько планет в Солнечной системе?`, options: ["7","8","9","10"], correct: 1 }
-    ]
-}));
-
-// ==================== СОХРАНЕНИЕ ====================
-function save() { localStorage.setItem('quizPro', JSON.stringify(player)); }
-function load() {
-    const saved = localStorage.getItem('quizPro');
-    if (saved) player = JSON.parse(saved);
-}
-
-// ==================== ОТРИСОВКА ====================
-function renderHeader() {
-    document.getElementById('xp').textContent = player.xp;
-    document.getElementById('coins').textContent = player.coins;
-    document.getElementById('lives').innerHTML = '❤️'.repeat(player.lives) + '♡'.repeat(3-player.lives);
-}
-
-function renderLevels() {
-    const grid = document.getElementById('levels-grid');
-    grid.innerHTML = '';
-    
-    for (let i = 1; i <= 20; i++) {
-        const prog = player.levelsProgress[i-1];
-        const unlocked = i === 1 || player.xp >= (i-1) * 150;
+    <script>
+        // ==================== CONFIG ====================
+        const ROWS = 8, COLS = 8;
+        let CELL = 58; // px
+        const GEM_TYPES = 6;
         
-        const card = document.createElement('div');
-        card.className = `level-card aspect-square rounded-3xl flex flex-col items-center justify-center border ${unlocked ? 'border-[#00ff9d]/50 bg-[#1a1a1e]' : 'opacity-40 bg-[#111]'}`;
-        card.innerHTML = `
-            <div class="text-5xl font-bold ${unlocked ? 'text-[#00ff9d]' : 'text-gray-500'}">${i}</div>
-            <div class="text-xs tracking-widest mt-1 ${unlocked ? 'text-[#00ff9d]' : 'text-gray-500'}">УРОВЕНЬ</div>
-            ${prog.answered.length > 0 ? `<div class="text-[10px] mt-2">${prog.answered.length}/2</div>` : ''}
-        `;
+        // Level data
+        const LEVELS = [
+            {id:1, target:1200, moves:22},
+            {id:2, target:1800, moves:24},
+            {id:3, target:2500, moves:24},
+            {id:4, target:3200, moves:25},
+            {id:5, target:4000, moves:25},
+            {id:6, target:4800, moves:26},
+            {id:7, target:5700, moves:27},
+            {id:8, target:6800, moves:28},
+            {id:9, target:8000, moves:29},
+            {id:10,target:10000,moves:30}
+        ];
         
-        if (unlocked) {
-            card.onclick = () => startLevel(i);
+        // Colors & emojis
+        const GEM_DATA = [
+            null,
+            {cls:'red',    emoji:'💎', color:'#ff3b5c'},
+            {cls:'blue',   emoji:'💎', color:'#3b9eff'},
+            {cls:'green',  emoji:'💎', color:'#3bff9e'},
+            {cls:'yellow', emoji:'💎', color:'#ffe53b'},
+            {cls:'purple', emoji:'💎', color:'#c23bff'},
+            {cls:'orange', emoji:'💎', color:'#ff9e3b'}
+        ];
+        
+        // ==================== STATE ====================
+        let board = [];
+        let gemsDOM = [];
+        let score = 0;
+        let moves = 0;
+        let levelIndex = 1;
+        let livesCount = 5;
+        let coinsCount = 250;
+        let lastLifeTime = Date.now();
+        let boostersInventory = {color:2, line:2, tBomb:1, lBomb:1};
+        let completed = [];
+        let bestScorePerLevel = Array(11).fill(0);
+        let selected = null;
+        let animating = false;
+        let audioContext = null;
+        
+        // ==================== LOCALSTORAGE ====================
+        function loadSave() {
+            if (localStorage.getItem('cm_coins')) coinsCount = parseInt(localStorage.getItem('cm_coins'));
+            if (localStorage.getItem('cm_lives')) livesCount = parseInt(localStorage.getItem('cm_lives'));
+            if (localStorage.getItem('cm_lastLife')) lastLifeTime = parseInt(localStorage.getItem('cm_lastLife'));
+            if (localStorage.getItem('cm_level')) levelIndex = parseInt(localStorage.getItem('cm_level'));
+            if (localStorage.getItem('cm_completed')) completed = JSON.parse(localStorage.getItem('cm_completed'));
+            if (localStorage.getItem('cm_best')) bestScorePerLevel = JSON.parse(localStorage.getItem('cm_best'));
+            if (localStorage.getItem('cm_boosters')) boostersInventory = JSON.parse(localStorage.getItem('cm_boosters'));
+            
+            // Regen lives
+            const now = Date.now();
+            const elapsedMin = Math.floor((now - lastLifeTime) / 60000);
+            const regen = Math.min(Math.floor(elapsedMin / 30), 5 - livesCount);
+            if (regen > 0) {
+                livesCount += regen;
+                lastLifeTime = now;
+            }
+            saveGame();
         }
-        grid.appendChild(card);
-    }
-}
-
-// ==================== ЗАПУСК УРОВНЯ ====================
-function startLevel(levelNum) {
-    currentLevelNum = levelNum;
-    currentQuestionIdx = 0;
-    
-    document.getElementById('levels-screen').classList.add('hidden');
-    document.getElementById('game-screen').classList.remove('hidden');
-    
-    document.getElementById('level-info').innerHTML = `Уровень <span class="text-[#00ff9d]">${levelNum}</span>`;
-    loadQuestion();
-}
-
-function loadQuestion() {
-    const qData = allQuestions[currentLevelNum-1].questions[currentQuestionIdx];
-    
-    document.getElementById('question').textContent = qData.q;
-    document.getElementById('q-counter').textContent = `${currentQuestionIdx + 1} / 2`;
-    
-    const optsDiv = document.getElementById('options');
-    optsDiv.innerHTML = '';
-    
-    qData.options.forEach((opt, idx) => {
-        const btn = document.createElement('button');
-        btn.className = "bg-[#1a1a1e] hover:bg-[#222] py-6 rounded-3xl text-left px-5 text-lg";
-        btn.textContent = opt;
-        btn.onclick = () => checkAnswer(idx, qData.correct);
-        optsDiv.appendChild(btn);
-    });
-}
-
-function checkAnswer(selected, correct) {
-    const isRight = selected === correct;
-    
-    // Награда
-    if (isRight) {
-        player.coins += 50;
-        player.xp += 10;
-    }
-    
-    // Сохраняем прогресс
-    const prog = player.levelsProgress[currentLevelNum-1];
-    prog.answered.push({q: currentQuestionIdx, correct: isRight});
-    if (prog.answered.length === 2) prog.completed = true;
-    
-    save();
-    renderHeader();
-    
-    // Показываем результат
-    showResult(isRight);
-}
-
-function showResult(isRight) {
-    document.getElementById('game-screen').classList.add('hidden');
-    const res = document.getElementById('result-screen');
-    res.classList.remove('hidden');
-    
-    document.getElementById('result-icon').textContent = isRight ? '🎉' : '😕';
-    document.getElementById('result-title').innerHTML = isRight ? 
-        '<span class="text-[#00ff9d]">ПРАВИЛЬНО!</span>' : 
-        '<span class="text-red-500">НЕПРАВИЛЬНО</span>';
-    document.getElementById('result-text').textContent = isRight ? '+50 🪙 +10 ⭐' : 'В следующий раз получится!';
-}
-
-function nextQuestion() {
-    currentQuestionIdx++;
-    const totalQ = allQuestions[currentLevelNum-1].questions.length;
-    
-    if (currentQuestionIdx < totalQ) {
-        document.getElementById('result-screen').classList.add('hidden');
-        document.getElementById('game-screen').classList.remove('hidden');
-        loadQuestion();
-    } else {
-        backToLevels();
-    }
-}
-
-function backToLevels() {
-    document.getElementById('game-screen').classList.add('hidden');
-    document.getElementById('result-screen').classList.add('hidden');
-    document.getElementById('levels-screen').classList.remove('hidden');
-    renderLevels();
-}
-
-function showLivesModal() {
-    alert(`У тебя ${player.lives} жизней ❤️\n(в полной версии здесь будет модалка)`);
-}
-
-function showShop() {
-    alert('Магазин открыт (в полной версии здесь будут покупки)');
-}
-
-// ==================== СТАРТ ====================
-window.onload = () => {
-    load();
-    renderHeader();
-    renderLevels();
-};
-</script>
-</body>
-    </html>
+        
+        function saveGame() {
+            localStorage.setItem('cm_coins', coinsCount);
+            localStorage.setItem('cm_lives', livesCount);
+            localStorage.setItem('cm_lastLife', lastLifeTime);
+            localStorage.setItem('cm_level', levelIndex);
+            localStorage.setItem('cm_completed', JSON.stringify(completed));
+            localStorage.setItem('cm_best', JSON.stringify(bestScorePerLevel));
+            localStorage.setItem('cm_boosters', JSON.stringify(boostersInventory));
+        }
+        
+        // ==================== AUDIO ====================
+        function initAudio() {
+            if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function beep(freq, duration, vol = 0.4, type = 'sine') {
+            initAudio();
+            const o = audioContext.createOscillator();
+            const g = audioContext.createGain();
+            o.connect(g); g.connect(audioContext.destination);
+            o.frequency.value = freq;
+            o.type = type;
+            g.gain.value = vol;
+            o.start();
+            o.stop(audioContext.currentTime + duration);
+        }
+        function playMatchSound() { beep(820, 0.08); setTimeout(()=>beep(1100,0.12),40); }
+        function playSwapSound() { beep(320, 0.09, 0.6); }
+        function playFallSound() { beep(180, 0.25, 0.3, 'sawtooth'); }
+        function playWinSound() {
+            beep(660,0.1); setTimeout(()=>beep(880,0.1),90);
+            setTimeout(()=>beep(1100,0.1),220); setTimeout(()=>beep(1320,0.4),350);
+        }
+        function playLoseSound() { beep(240,0.6,0.5,'sawtooth'); }
+        
+        // ==================== BOARD RENDER ====================
+        function createBoard() {
+            const wrapper = document.getElementById('board-wrapper');
+            wrapper.innerHTML = '';
+            gemsDOM = [];
+            board = Array.from({length:ROWS}, () => Array(COLS).fill(0));
+            
+            for (let r = 0; r < ROWS; r++) {
+                gemsDOM[r] = [];
+                for (let c = 0; c < COLS; c++) {
+                    const type = Math.floor(Math.random() * GEM_TYPES) + 1;
+                    board[r][c] = type;
+                    
+                    const div = document.createElement('div');
+                    div.className = `gem ${GEM_DATA[type].cls}`;
+                    div.innerHTML = GEM_DATA[type].emoji;
+                    div.dataset.r = r;
+                    div.dataset.c = c;
+                    div.style.transition = 'transform 0.3

@@ -7,323 +7,294 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
-        :root {
-            --neon: #00ffff;
-            --pink: #ff00ff;
-        }
-        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            background: linear-gradient(180deg, #0a001f, #220033);
-            color: #fff;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(#0a001f, #1a0033);
+            color: white;
             font-family: 'Press Start 2P', system-ui;
-            overflow: hidden;
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
             touch-action: manipulation;
         }
-        .neon { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--pink); }
+        .neon { 
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #ff00ff; 
+        }
 
         #header {
-            padding: 10px 15px;
-            background: rgba(30,0,50,0.8);
-            border-bottom: 4px solid var(--neon);
+            height: 70px;
+            background: rgba(20,0,40,0.95);
+            border-bottom: 5px solid #00ffff;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 14px;
-            box-shadow: 0 0 20px var(--neon);
+            padding: 0 15px;
+            font-size: 15px;
+            box-shadow: 0 4px 25px #00ffff;
         }
-        .header-item { display: flex; align-items: center; gap: 6px; }
+        .header-item { display: flex; align-items: center; gap: 8px; }
 
         #board-wrapper {
-            position: relative;
-            width: 480px;
-            height: 480px;
+            width: 460px;
+            height: 460px;
             margin: 15px auto;
-            background: #1a0033;
-            border: 8px solid var(--neon);
-            border-radius: 20px;
-            box-shadow: 0 0 40px var(--neon), inset 0 0 30px #000;
+            background: #0f0022;
+            border: 12px solid #00ffff;
+            border-radius: 24px;
+            box-shadow: 0 0 60px #00ffff, inset 0 0 40px #000;
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 6px;
-            padding: 10px;
+            gap: 8px;
+            padding: 12px;
+            position: relative;
+            overflow: hidden;
         }
         .gem {
-            background: radial-gradient(circle at 35% 30%, #ffffff88, var(--gcolor) 60%, #000);
-            border-radius: 12px;
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.7), 0 0 20px var(--gcolor);
+            font-size: 46px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.8), 0 0 25px currentColor;
             cursor: pointer;
-            transition: all 0.2s;
-            user-select: none;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.4, 1);
+            background: radial-gradient(circle at 40% 30%, rgba(255,255,255,0.9), transparent 70%);
         }
-        .gem.red    { --gcolor: #ff3366; }
-        .gem.blue   { --gcolor: #3388ff; }
-        .gem.green  { --gcolor: #33ff99; }
-        .gem.yellow { --gcolor: #ffdd33; }
-        .gem.purple { --gcolor: #bb33ff; }
-        .gem.orange { --gcolor: #ff8833; }
-        .gem.selected { transform: scale(1.25); box-shadow: 0 0 30px gold; }
+        .gem.red    { background-color: #ff3366; }
+        .gem.blue   { background-color: #3388ff; }
+        .gem.green  { background-color: #33ff99; }
+        .gem.yellow { background-color: #ffdd33; }
+        .gem.purple { background-color: #bb33ff; }
+        .gem.orange { background-color: #ff8833; }
+
+        .gem.selected {
+            transform: scale(1.35);
+            box-shadow: 0 0 40px #ffff00;
+        }
 
         .modal {
             position: fixed;
             inset: 0;
-            background: rgba(5,0,25,0.95);
+            background: rgba(5,0,30,0.97);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 10000;
+            z-index: 1000;
         }
         .modal-content {
             background: linear-gradient(#2a0044, #110022);
-            border: 6px solid var(--neon);
-            border-radius: 20px;
-            padding: 25px;
-            width: 90%;
-            max-width: 420px;
+            border: 8px solid #00ffff;
+            border-radius: 24px;
+            padding: 30px 25px;
+            width: 92%;
+            max-width: 400px;
             text-align: center;
-            box-shadow: 0 0 50px var(--neon);
+            box-shadow: 0 0 60px #00ffff;
         }
         .btn {
-            display: block;
             width: 100%;
-            margin: 12px 0;
-            padding: 16px;
-            background: linear-gradient(#00ffff, #00aaff);
+            padding: 18px;
+            margin: 10px 0;
+            background: linear-gradient(#00ffff, #00ccff);
             color: #000;
+            font-size: 17px;
             font-weight: bold;
-            font-size: 18px;
             border: none;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 0 20px var(--neon);
+            box-shadow: 0 0 25px #00ffff;
         }
-        .btn:active { transform: scale(0.95); }
+        .btn:active { transform: scale(0.94); }
     </style>
 </head>
 <body>
 
 <div id="header">
-    <div class="header-item">LVL <span id="level-num">1</span></div>
-    <div class="header-item" id="lives">❤️❤️❤️❤️❤️</div>
-    <div class="header-item neon">💎 <span id="coins">250</span></div>
-    <div onclick="openShop()" style="cursor:pointer;font-size:24px;">🛒</div>
+    <div class="header-item neon">LVL <span id="level-num">1</span></div>
+    <div class="header-item" id="lives" style="font-size:28px;">❤️❤️❤️❤️❤️</div>
+    <div class="header-item neon" style="margin-left:auto;">💎 <span id="coins">250</span></div>
+    <div onclick="openShop()" style="font-size:32px;cursor:pointer;margin-left:15px;">🛒</div>
 </div>
 
 <div id="board-wrapper"></div>
 
-<div style="text-align:center; margin:10px;">
-    <button onclick="pauseGame()" class="btn" style="width:140px;display:inline-block;">ПАУЗА</button>
-    <button onclick="showLevelSelect()" class="btn" style="width:140px;display:inline-block;">УРОВНИ</button>
+<div style="display:flex; justify-content:center; gap:20px; margin:15px 0;">
+    <button onclick="pauseGame()" class="btn" style="width:165px;">ПАУЗА</button>
+    <button onclick="showLevelSelect()" class="btn" style="width:165px;">УРОВНИ</button>
 </div>
 
-<!-- Главное меню -->
+<!-- Модальные окна (те же, что и раньше) -->
 <div id="modal-main" class="modal" style="display:flex;">
     <div class="modal-content">
-        <h1 class="neon" style="font-size:38px;margin-bottom:30px;">CRYSTAL<br>MATCH</h1>
-        <button onclick="startNewGame()" class="btn">▶ НАЧАТЬ ИГРУ</button>
+        <h1 class="neon" style="font-size:42px;margin-bottom:30px;">CRYSTAL<br>MATCH</h1>
+        <button onclick="startGame()" class="btn">▶ ИГРАТЬ</button>
         <button onclick="showLevelSelect()" class="btn">📋 ВЫБОР УРОВНЯ</button>
         <button onclick="openShop()" class="btn">🛒 МАГАЗИН</button>
         <button onclick="showTutorial()" class="btn">❔ КАК ИГРАТЬ</button>
     </div>
 </div>
 
-<!-- Выбор уровня -->
 <div id="modal-levels" class="modal">
     <div class="modal-content">
         <h2 class="neon">ВЫБОР УРОВНЯ</h2>
-        <div id="levels-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:25px 0;"></div>
+        <div id="levels-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:15px;margin:25px 0;"></div>
         <button onclick="hideAllModals()" class="btn">НАЗАД</button>
     </div>
 </div>
 
-<!-- Победа -->
 <div id="modal-win" class="modal">
     <div class="modal-content">
         <h2 class="neon">ПОБЕДА!</h2>
-        <div id="win-stars" style="font-size:70px;margin:15px 0;">⭐⭐⭐</div>
+        <div id="win-stars" style="font-size:75px;margin:15px 0;">⭐⭐⭐</div>
         <p>Счёт: <span id="win-score" class="neon"></span></p>
         <button onclick="nextLevel()" class="btn">СЛЕДУЮЩИЙ УРОВЕНЬ</button>
         <button onclick="hideAllModals();showLevelSelect()" class="btn">МЕНЮ УРОВНЕЙ</button>
     </div>
 </div>
 
-<!-- Поражение -->
 <div id="modal-lose" class="modal">
     <div class="modal-content">
         <h2>ПОРАЖЕНИЕ</h2>
-        <p>Ходы закончились</p>
-        <button onclick="watchFakeAd('life')" class="btn">📺 +1 ЖИЗНЬ (реклама)</button>
+        <button onclick="watchFakeAd('life');" class="btn">📺 +1 ЖИЗНЬ</button>
         <button onclick="restartLevel()" class="btn">ПОВТОРИТЬ УРОВЕНЬ</button>
         <button onclick="hideAllModals();showLevelSelect()" class="btn">В МЕНЮ</button>
     </div>
 </div>
 
-<!-- Магазин -->
 <div id="modal-shop" class="modal">
     <div class="modal-content">
         <h2 class="neon">МАГАЗИН</h2>
-        <p style="margin:15px 0;">💎 <span id="shop-coins">250</span></p>
-        
-        <button onclick="buyItem(0)" class="btn">❤️ Extra Life — 100 монет</button>
-        <button onclick="buyItem(1)" class="btn">🌈 Color Bomb — 80 монет</button>
-        <button onclick="buyItem(2)" class="btn">⚡ Line Blast — 70 монет</button>
-        <button onclick="buyItem(3)" class="btn">💎 +500 монет</button>
-        
-        <button onclick="buyPremium()" class="btn" style="background:linear-gradient(#ffd700,#ffaa00);">PREMIUM 1.99$ (+2000 монет + 3 жизни)</button>
-        <button onclick="watchFakeAd('coins')" class="btn">📺 Смотреть рекламу (+100 монет)</button>
+        <p>💎 <span id="shop-coins">250</span></p>
+        <button onclick="buyItem(0)" class="btn">❤️ Extra Life — 100</button>
+        <button onclick="buyItem(1)" class="btn">🌈 Color Bomb — 80</button>
+        <button onclick="buyItem(2)" class="btn">⚡ Line Blast — 70</button>
         <button onclick="hideAllModals()" class="btn">ЗАКРЫТЬ</button>
     </div>
 </div>
 
-<!-- Нет жизней -->
-<div id="modal-nolives" class="modal">
-    <div class="modal-content">
-        <h2>ЖИЗНИ ЗАКОНЧИЛИСЬ</h2>
-        <button onclick="watchFakeAd('life')" class="btn">📺 +1 ЖИЗНЬ (реклама)</button>
-        <button onclick="hideAllModals()" class="btn">Закрыть</button>
-    </div>
-</div>
-
-<!-- Tutorial -->
 <div id="modal-tutorial" class="modal">
     <div class="modal-content">
         <h2 class="neon">КАК ИГРАТЬ</h2>
-        <p style="text-align:left;line-height:1.7;margin:20px 0;">
-            • Кликни по кристаллу<br>
-            • Кликни по соседнему — они поменяются местами<br>
-            • Собери 3 и более одинаковых<br>
-            • 4+ и 5+ дают мощные бонусы
-        </p>
-        <button onclick="hideAllModals()" class="btn">ПОНЯТНО!</button>
-    </div>
-</div>
-
-<!-- Пауза -->
-<div id="modal-pause" class="modal">
-    <div class="modal-content">
-        <h2 class="neon">ПАУЗА</h2>
-        <button onclick="hideAllModals()" class="btn">ПРОДОЛЖИТЬ ИГРУ</button>
-        <button onclick="hideAllModals();showLevelSelect()" class="btn">ВЫБОР УРОВНЯ</button>
+        <p style="line-height:1.8;margin:20px 0;">Кликни по кристаллу → кликни по соседнему.<br>Собери 3+ одинаковых!</p>
+        <button onclick="hideAllModals()" class="btn">ПОНЯТНО</button>
     </div>
 </div>
 
 <script>
 // ==================== ИГРА ====================
-let board = [], gems = [], score = 0, moves = 25, currentLevel = 1, lives = 5, coins = 250;
-let selected = null;
-let isAnimating = false;
+let board = [], gems = [], score = 0, movesLeft = 25, currentLevel = 1, lives = 5, coins = 250;
+let selectedGem = null;
+let isBusy = false;
 
-const GEM_EMOJI = ['','🔴','🔵','🟢','🟡','🟣','🟠'];
-const GEM_CLASS = ['','red','blue','green','yellow','purple','orange'];
+const colors = ['','red','blue','green','yellow','purple','orange'];
+const emojis = ['','🔴','🔵','🟢','🟡','🟣','🟠'];
 
-const LEVEL_DATA = [
-    {target:1200, moves:22}, {target:1800, moves:24}, {target:2500, moves:24},
-    {target:3200, moves:25}, {target:4000, moves:25}, {target:4800, moves:26},
-    {target:5700, moves:27}, {target:6800, moves:28}, {target:8000, moves:29},
-    {target:10000,moves:30}
+const levels = [
+    {target:1500, moves:22}, {target:2200, moves:24}, {target:3000, moves:24},
+    {target:3800, moves:25}, {target:4600, moves:26}, {target:5500, moves:27}
 ];
 
 function createBoard() {
-    const wrapper = document.getElementById('board-wrapper');
-    wrapper.innerHTML = '';
+    const container = document.getElementById('board-wrapper');
+    container.innerHTML = '';
     board = Array.from({length:8}, () => Array(8).fill(0));
     gems = Array.from({length:8}, () => Array(8).fill(null));
 
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-            let type = Math.floor(Math.random()*6) + 1;
+            let type = Math.floor(Math.random() * 6) + 1;
             board[r][c] = type;
 
             const gem = document.createElement('div');
-            gem.className = `gem ${GEM_CLASS[type]}`;
-            gem.innerHTML = GEM_EMOJI[type];
-            gem.dataset.r = r;
-            gem.dataset.c = c;
-            gem.addEventListener('click', gemClick);
-            wrapper.appendChild(gem);
+            gem.className = `gem ${colors[type]}`;
+            gem.innerHTML = emojis[type];
+            gem.dataset.row = r;
+            gem.dataset.col = c;
+            gem.addEventListener('click', handleGemClick);
+            container.appendChild(gem);
             gems[r][c] = gem;
         }
     }
-    // Убираем начальные матчи
-    while (clearMatches(true)) {}
+    removeInitialMatches();
 }
 
-function gemClick(e) {
-    if (isAnimating) return;
-    const r = +e.target.dataset.r;
-    const c = +e.target.dataset.c;
+function removeInitialMatches() {
+    let changed = true;
+    while (changed) {
+        changed = false;
+        // horizontal
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 6; c++) {
+                if (board[r][c] && board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
+                    board[r][c+1] = Math.floor(Math.random()*6)+1;
+                    changed = true;
+                }
+            }
+        }
+        // vertical
+        for (let c = 0; c < 8; c++) {
+            for (let r = 0; r < 6; r++) {
+                if (board[r][c] && board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
+                    board[r+1][c] = Math.floor(Math.random()*6)+1;
+                    changed = true;
+                }
+            }
+        }
+    }
+}
 
-    if (!selected) {
-        selected = {r, c, el: e.target};
-        e.target.classList.add('selected');
+function handleGemClick(e) {
+    if (isBusy) return;
+    const r = +e.currentTarget.dataset.row;
+    const c = +e.currentTarget.dataset.col;
+
+    if (!selectedGem) {
+        selectedGem = {row:r, col:c, el: e.currentTarget};
+        e.currentTarget.classList.add('selected');
         return;
     }
 
-    if (selected.r === r && selected.c === c) {
-        selected.el.classList.remove('selected');
-        selected = null;
+    if (selectedGem.row === r && selectedGem.col === c) {
+        selectedGem.el.classList.remove('selected');
+        selectedGem = null;
         return;
     }
 
-    const dr = Math.abs(selected.r - r);
-    const dc = Math.abs(selected.c - c);
+    const dr = Math.abs(selectedGem.row - r);
+    const dc = Math.abs(selectedGem.col - c);
 
     if (dr + dc === 1) {
-        swapGems(selected.r, selected.c, r, c);
+        swapGems(selectedGem.row, selectedGem.col, r, c);
     } else {
-        selected.el.classList.remove('selected');
-        selected = {r, c, el: e.target};
-        e.target.classList.add('selected');
+        selectedGem.el.classList.remove('selected');
+        selectedGem = {row:r, col:c, el: e.currentTarget};
+        e.currentTarget.classList.add('selected');
     }
 }
 
 function swapGems(r1, c1, r2, c2) {
-    isAnimating = true;
-    
-    // Меняем данные
+    isBusy = true;
+    if (selectedGem) selectedGem.el.classList.remove('selected');
+
+    // Swap
     [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-    
-    // Меняем DOM
-    const g1 = gems[r1][c1];
-    const g2 = gems[r2][c2];
-    gems[r1][c1] = g2; gems[r2][c2] = g1;
-    
-    g1.dataset.r = r2; g1.dataset.c = c2;
-    g2.dataset.r = r1; g2.dataset.c = c1;
+    [gems[r1][c1], gems[r2][c2]] = [gems[r2][c2], gems[r1][c1]];
 
-    // Анимация свапа
-    g1.style.transition = g2.style.transition = 'transform 0.25s';
-    g1.style.transform = `translate(${ (c2-c1)*62 }px, ${ (r2-r1)*62 }px)`;
-    g2.style.transform = `translate(${ (c1-c2)*62 }px, ${ (r1-r2)*62 }px)`;
+    gems[r1][c1].dataset.row = r1; gems[r1][c1].dataset.col = c1;
+    gems[r2][c2].dataset.row = r2; gems[r2][c2].dataset.col = c2;
 
-    setTimeout(() => {
-        g1.style.transition = g2.style.transition = 'none';
-        g1.style.transform = g2.style.transform = 'none';
-        
-        // Перерисовываем
+    renderBoard();
+
+    if (hasMatches()) {
+        movesLeft--;
+        setTimeout(processMatches, 300);
+    } else {
+        // revert
+        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+        [gems[r1][c1], gems[r2][c2]] = [gems[r2][c2], gems[r1][c1]];
         renderBoard();
-        selected = null;
-
-        if (clearMatches()) {
-            moves--;
-            updateHeader();
-            setTimeout(dropGems, 400);
-        } else {
-            // Откатываем свап
-            [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
-            gems[r1][c1] = g1; gems[r2][c2] = g2;
-            g1.dataset.r = r1; g1.dataset.c = c1;
-            g2.dataset.r = r2; g2.dataset.c = c2;
-            renderBoard();
-            isAnimating = false;
-        }
-    }, 260);
+        isBusy = false;
+    }
+    selectedGem = null;
 }
 
 function renderBoard() {
@@ -331,167 +302,188 @@ function renderBoard() {
         for (let c = 0; c < 8; c++) {
             const type = board[r][c];
             const gem = gems[r][c];
-            if (!gem) continue;
-            gem.className = `gem ${GEM_CLASS[type]}`;
-            gem.innerHTML = GEM_EMOJI[type];
+            gem.className = `gem ${colors[type]}`;
+            gem.innerHTML = emojis[type];
         }
     }
 }
 
-function clearMatches(silent = false) {
-    let toRemove = [];
-    // горизонтальные
+function hasMatches() {
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 6; c++) {
+        if (board[r][c] && board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) return true;
+    }
+    for (let c = 0; c < 8; c++) for (let r = 0; r < 6; r++) {
+        if (board[r][c] && board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) return true;
+    }
+    return false;
+}
+
+function processMatches() {
+    let removed = false;
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 6; c++) {
             if (board[r][c] && board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
-                toRemove.push([r,c],[r,c+1],[r,c+2]);
+                board[r][c] = board[r][c+1] = board[r][c+2] = 0;
+                removed = true;
             }
         }
     }
-    // вертикальные
     for (let c = 0; c < 8; c++) {
         for (let r = 0; r < 6; r++) {
             if (board[r][c] && board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
-                toRemove.push([r,c],[r+1,c],[r+2,c]);
+                board[r][c] = board[r+1][c] = board[r+2][c] = 0;
+                removed = true;
             }
         }
     }
 
-    if (toRemove.length === 0) return false;
-
-    if (!silent) score += toRemove.length * 80;
-
-    // Удаляем
-    toRemove.forEach(([r,c]) => {
-        board[r][c] = 0;
-        const gem = gems[r][c];
-        if (gem) gem.style.transition = 'transform 0.4s, opacity 0.4s';
-        if (gem) gem.style.transform = 'scale(0.2)';
-        if (gem) gem.style.opacity = '0';
-    });
-
-    setTimeout(() => renderBoard(), 420);
-    return true;
+    if (removed) {
+        score += 150;
+        document.getElementById('coins').textContent = coins;
+        renderBoard();
+        setTimeout(dropGems, 280);
+    } else {
+        isBusy = false;
+        checkGameEnd();
+    }
 }
 
 function dropGems() {
-    let moved = false;
+    const container = document.getElementById('board-wrapper');
+    
     for (let c = 0; c < 8; c++) {
-        let write = 7;
+        let writeRow = 7;
+        
+        // Сдвигаем существующие кристаллы вниз
         for (let r = 7; r >= 0; r--) {
             if (board[r][c] !== 0) {
-                if (r !== write) {
-                    board[write][c] = board[r][c];
-                    gems[write][c] = gems[r][c];
-                    gems[write][c].dataset.r = write;
+                if (r !== writeRow) {
+                    board[writeRow][c] = board[r][c];
+                    gems[writeRow][c] = gems[r][c];
+                    gems[writeRow][c].dataset.row = writeRow;
+                    
+                    // Плавное падение
+                    gems[writeRow][c].style.transition = 'transform 0.5s cubic-bezier(0.3, 0, 0.7, 1)';
+                    gems[writeRow][c].style.transform = `translateY(${(writeRow - r) * 58}px)`;
+                    
                     board[r][c] = 0;
-                    moved = true;
                 }
-                write--;
+                writeRow--;
             }
         }
-        // Заполняем сверху
-        for (let r = write; r >= 0; r--) {
-            const type = Math.floor(Math.random()*6) + 1;
+        
+        // Создаём новые кристаллы сверху
+        for (let r = writeRow; r >= 0; r--) {
+            const type = Math.floor(Math.random() * 6) + 1;
             board[r][c] = type;
             
             const gem = document.createElement('div');
-            gem.className = `gem ${GEM_CLASS[type]}`;
-            gem.innerHTML = GEM_EMOJI[type];
-            gem.dataset.r = r;
-            gem.dataset.c = c;
-            gem.addEventListener('click', gemClick);
-            document.getElementById('board-wrapper').appendChild(gem);
+            gem.className = `gem ${colors[type]}`;
+            gem.innerHTML = emojis[type];
+            gem.dataset.row = r;
+            gem.dataset.col = c;
+            gem.addEventListener('click', handleGemClick);
+            
+            // Начальная позиция сверху
+            gem.style.position = 'absolute';
+            gem.style.left = `${c * 58 + 12}px`;
+            gem.style.top = `${r * 58 + 12 - 400}px`;
+            gem.style.width = '50px';
+            gem.style.height = '50px';
+            
+            container.appendChild(gem);
             gems[r][c] = gem;
-            gem.style.opacity = '0';
-            gem.style.transform = 'translateY(-400px)';
+            
+            // Анимация падения
             setTimeout(() => {
-                gem.style.transition = 'all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1)';
-                gem.style.opacity = '1';
-                gem.style.transform = 'translateY(0)';
-            }, 50);
-            moved = true;
+                gem.style.transition = 'top 0.6s cubic-bezier(0.25, 0.8, 0.4, 1)';
+                gem.style.top = `${r * 58 + 12}px`;
+            }, 50 + r * 30);
         }
     }
+    
+    // Очистка старых элементов и обновление
     setTimeout(() => {
         renderBoard();
-        if (clearMatches()) {
-            setTimeout(dropGems, 450);
+        if (hasMatches()) {
+            processMatches();
         } else {
-            isAnimating = false;
-            checkLevelEnd();
+            isBusy = false;
+            checkGameEnd();
         }
-    }, 650);
+    }, 700);
 }
 
-function checkLevelEnd() {
-    if (score >= LEVEL_DATA[currentLevel-1].target) {
-        showWin();
-    } else if (moves <= 0) {
-        showLose();
+function checkGameEnd() {
+    if (score >= levels[currentLevel-1].target) {
+        document.getElementById('win-score').textContent = score;
+        document.getElementById('modal-win').style.display = 'flex';
+    } else if (movesLeft <= 0) {
+        document.getElementById('modal-lose').style.display = 'flex';
     }
 }
 
 function updateHeader() {
     document.getElementById('level-num').textContent = currentLevel;
-    document.getElementById('coins').textContent = coins;
     document.getElementById('lives').textContent = '❤️'.repeat(Math.min(5, lives));
+    document.getElementById('coins').textContent = coins;
 }
 
-function startNewGame() {
+// ==================== КНОПКИ ====================
+function startGame() {
     hideAllModals();
     currentLevel = 1;
     score = 0;
-    moves = LEVEL_DATA[0].moves;
-    lives = Math.max(1, lives);
+    movesLeft = levels[0].moves;
     createBoard();
     updateHeader();
-}
-
-function loadLevel(lvl) {
-    hideAllModals();
-    if (lives < 1) {
-        document.getElementById('modal-nolives').style.display = 'flex';
-        return;
-    }
-    lives--;
-    currentLevel = lvl;
-    score = 0;
-    moves = LEVEL_DATA[lvl-1].moves;
-    createBoard();
-    updateHeader();
-}
-
-function showWin() {
-    coins += 150;
-    document.getElementById('win-score').textContent = score;
-    document.getElementById('modal-win').style.display = 'flex';
 }
 
 function nextLevel() {
     hideAllModals();
-    if (currentLevel < 10) {
-        loadLevel(currentLevel + 1);
-    } else {
-        alert("Поздравляем! Вы прошли все уровни!");
-        showLevelSelect();
+    if (currentLevel < levels.length) {
+        currentLevel++;
+        score = 0;
+        movesLeft = levels[currentLevel-1].moves;
+        createBoard();
+        updateHeader();
     }
-}
-
-function showLose() {
-    document.getElementById('modal-lose').style.display = 'flex';
 }
 
 function restartLevel() {
     hideAllModals();
-    if (lives > 0) loadLevel(currentLevel);
+    score = 0;
+    movesLeft = levels[currentLevel-1].moves;
+    createBoard();
+    updateHeader();
 }
 
 function pauseGame() {
-    document.getElementById('modal-pause').style.display = 'flex';
+    hideAllModals();
+    document.getElementById('modal-main').style.display = 'flex';
 }
 
-// Магазин
+function showLevelSelect() {
+    hideAllModals();
+    const grid = document.getElementById('levels-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= levels.length; i++) {
+        const div = document.createElement('div');
+        div.style.cssText = `width:55px;height:55px;border-radius:50%;background:#330066;border:5px solid ${i<=currentLevel?'#00ffff':'#555'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;`;
+        div.textContent = i;
+        div.onclick = () => {
+            hideAllModals();
+            currentLevel = i;
+            score = 0;
+            movesLeft = levels[i-1].moves;
+            createBoard();
+            updateHeader();
+        };
+        grid.appendChild(div);
+    }
+    document.getElementById('modal-levels').style.display = 'flex';
+}
+
 function openShop() {
     hideAllModals();
     document.getElementById('shop-coins').textContent = coins;
@@ -499,43 +491,17 @@ function openShop() {
 }
 
 function buyItem(n) {
-    if (n === 0 && coins >= 100) { coins -= 100; lives = Math.min(5,lives+1); }
-    if (n === 1 && coins >= 80)  { coins -= 80; /* color bomb */ }
-    if (n === 2 && coins >= 70)  { coins -= 70; /* line blast */ }
-    if (n === 3) coins += 500;
+    if (n === 0 && coins >= 100) { coins -= 100; lives = Math.min(5, lives+1); }
+    if (n === 1 && coins >= 80) coins -= 80;
+    if (n === 2 && coins >= 70) coins -= 70;
     updateHeader();
+    hideAllModals();
 }
 
-function buyPremium() {
-    coins += 2000;
-    lives = Math.min(5, lives + 3);
-    updateHeader();
-}
-
-// Фейковая реклама
 function watchFakeAd(type) {
     hideAllModals();
-    setTimeout(() => {
-        if (type === 'life') lives = Math.min(5, lives + 1);
-        if (type === 'coins') coins += 100;
-        updateHeader();
-    }, 1200);
-}
-
-// Уровни
-function showLevelSelect() {
-    hideAllModals();
-    const grid = document.getElementById('levels-grid');
-    grid.innerHTML = '';
-    for (let i = 1; i <= 10; i++) {
-        const div = document.createElement('div');
-        div.style.cssText = `width:55px;height:55px;border-radius:50%;background:#330066;border:4px solid ${i<=currentLevel?'#00ffff':'#555'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;`;
-        div.textContent = i;
-        if (i > currentLevel + 1) div.style.opacity = '0.3';
-        else div.onclick = () => loadLevel(i);
-        grid.appendChild(div);
-    }
-    document.getElementById('modal-levels').style.display = 'flex';
+    if (type === 'life') lives = Math.min(5, lives + 1);
+    updateHeader();
 }
 
 function showTutorial() {
@@ -547,11 +513,12 @@ function hideAllModals() {
     document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
 }
 
-// Запуск
+// ==================== ЗАПУСК ====================
 window.onload = () => {
-    document.getElementById('modal-main').style.display = 'flex';
     updateHeader();
+    document.getElementById('modal-main').style.display = 'flex';
+    createBoard();
 };
 </script>
 </body>
-            </html>
+    </html>

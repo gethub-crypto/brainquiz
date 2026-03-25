@@ -2,517 +2,556 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Сладкий Матч-3 • Candy Crush</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Crystal Match</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
         
         :root {
-            --primary: #ff4da6;
-            --accent: #00ffcc;
-            --bg: #1a0033;
+            --neon: #00ffff;
+            --pink: #ff00ff;
         }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin:0; padding:0; box-sizing:border-box; }
         body {
-            background: linear-gradient(135deg, #1a0033, #330066);
-            color: white;
-            font-family: 'Comic Neue', cursive;
-            overflow: hidden;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        #game-container {
-            position: relative;
-            width: 100%;
-            max-width: 960px;
-            height: 100vh;
-            box-shadow: 0 0 60px rgba(255, 77, 166, 0.6);
-            border-radius: 20px;
-            overflow: hidden;
-        }
-        
-        canvas {
-            display: block;
-            background: #2a0055;
-            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
-        }
-        
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(26, 0, 51, 0.95);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            backdrop-filter: blur(12px);
-        }
-        
-        .screen.active {
-            display: flex;
-            opacity: 1;
-        }
-        
-        h1 {
+            background: linear-gradient(180deg, #0a001f, #220033);
+            color: #fff;
             font-family: 'Press Start 2P', system-ui;
-            font-size: 3.2rem;
-            background: linear-gradient(90deg, #ff4da6, #00ffcc);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(255, 77, 166, 0.8);
-            margin-bottom: 30px;
-            letter-spacing: 4px;
-        }
-        
-        .button {
-            font-family: 'Comic Neue', cursive;
-            font-size: 1.6rem;
-            font-weight: 700;
-            padding: 18px 42px;
-            margin: 12px;
-            border: none;
-            border-radius: 50px;
-            background: linear-gradient(145deg, #ff4da6, #ff80cc);
-            color: white;
-            cursor: pointer;
-            box-shadow: 0 12px 0 #c80080,
-                        0 0 25px rgba(255, 77, 166, 0.6);
-            transition: all 0.2s ease;
-            position: relative;
             overflow: hidden;
-            min-width: 280px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-        
-        .button:hover {
-            transform: scale(1.12) translateY(-4px);
-            box-shadow: 0 18px 0 #c80080,
-                        0 0 40px rgba(0, 255, 204, 0.9);
-        }
-        
-        .button:active {
-            transform: scale(0.95) translateY(4px);
-            box-shadow: 0 4px 0 #c80080;
-        }
-        
-        .button::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255,255,255,0.4);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0;
-            transition: all 0.6s ease;
-        }
-        
-        .button.ripple::after {
-            width: 300px;
-            height: 300px;
-            opacity: 0;
-        }
-        
-        .level-btn {
-            width: 110px;
-            height: 110px;
-            border-radius: 20px;
-            font-size: 2rem;
-            margin: 15px;
+            height: 100vh;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(145deg, #00ffcc, #00cc99);
-            box-shadow: 0 10px 0 #008866;
-            transition: all 0.2s ease;
+            flex-direction: column;
+            touch-action: manipulation;
         }
-        
-        .level-btn:hover {
-            transform: scale(1.15) rotate(8deg);
-        }
-        
-        .level-btn.locked {
-            background: #555;
-            box-shadow: 0 10px 0 #333;
-            filter: grayscale(1);
-            cursor: not-allowed;
-        }
-        
-        .hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
+        .neon { text-shadow: 0 0 10px var(--neon), 0 0 20px var(--neon), 0 0 30px var(--pink); }
+
+        #header {
+            padding: 10px 15px;
+            background: rgba(30,0,50,0.8);
+            border-bottom: 4px solid var(--neon);
             display: flex;
             justify-content: space-between;
-            z-index: 20;
-            pointer-events: none;
+            align-items: center;
+            font-size: 14px;
+            box-shadow: 0 0 20px var(--neon);
         }
-        
-        .hud-item {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 1.4rem;
-            font-weight: 700;
-            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
+        .header-item { display: flex; align-items: center; gap: 6px; }
+
+        #board-wrapper {
+            position: relative;
+            width: 480px;
+            height: 480px;
+            margin: 15px auto;
+            background: #1a0033;
+            border: 8px solid var(--neon);
+            border-radius: 20px;
+            box-shadow: 0 0 40px var(--neon), inset 0 0 30px #000;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            padding: 10px;
+        }
+        .gem {
+            background: radial-gradient(circle at 35% 30%, #ffffff88, var(--gcolor) 60%, #000);
+            border-radius: 12px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            justify-content: center;
+            font-size: 42px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.7), 0 0 20px var(--gcolor);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
         }
-        
+        .gem.red    { --gcolor: #ff3366; }
+        .gem.blue   { --gcolor: #3388ff; }
+        .gem.green  { --gcolor: #33ff99; }
+        .gem.yellow { --gcolor: #ffdd33; }
+        .gem.purple { --gcolor: #bb33ff; }
+        .gem.orange { --gcolor: #ff8833; }
+        .gem.selected { transform: scale(1.25); box-shadow: 0 0 30px gold; }
+
         .modal {
-            background: #2a0055;
-            border-radius: 30px;
-            padding: 40px 60px;
-            box-shadow: 0 0 60px #ff4da6;
+            position: fixed;
+            inset: 0;
+            background: rgba(5,0,25,0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+        }
+        .modal-content {
+            background: linear-gradient(#2a0044, #110022);
+            border: 6px solid var(--neon);
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 420px;
             text-align: center;
-            max-width: 480px;
-            animation: modalPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            box-shadow: 0 0 50px var(--neon);
         }
-        
-        @keyframes modalPop {
-            0% { transform: scale(0.6); }
-            100% { transform: scale(1); }
+        .btn {
+            display: block;
+            width: 100%;
+            margin: 12px 0;
+            padding: 16px;
+            background: linear-gradient(#00ffff, #00aaff);
+            color: #000;
+            font-weight: bold;
+            font-size: 18px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--neon);
         }
-        
-        .particle {
-            position: absolute;
-            pointer-events: none;
-            z-index: 9999;
-        }
+        .btn:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <!-- CANVAS -->
-        <canvas id="canvas" width="720" height="720"></canvas>
 
-        <!-- MENU -->
-        <div id="screen-menu" class="screen active">
-            <h1>МАТЧ-3</h1>
-            <div style="margin-top: 40px;">
-                <button class="button" onclick="startNewGame()">ИГРАТЬ</button>
-                <button class="button" onclick="showLevelSelect()">ВЫБОР УРОВНЯ</button>
-                <button class="button" onclick="showSettings()">НАСТРОЙКИ</button>
-                <button class="button" onclick="exitGame()" style="background: linear-gradient(145deg, #ff3366, #cc0033);">ВЫХОД</button>
-            </div>
-            <div style="position: absolute; bottom: 30px; font-size: 1.1rem; opacity: 0.7;">
-                Сладкая классика • 8×8 • 7 видов конфет
-            </div>
-        </div>
+<div id="header">
+    <div class="header-item">LVL <span id="level-num">1</span></div>
+    <div class="header-item" id="lives">❤️❤️❤️❤️❤️</div>
+    <div class="header-item neon">💎 <span id="coins">250</span></div>
+    <div onclick="openShop()" style="cursor:pointer;font-size:24px;">🛒</div>
+</div>
 
-        <!-- LEVEL SELECT -->
-        <div id="screen-levels" class="screen">
-            <h1 style="font-size: 2.6rem; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ</h1>
-            <div id="levels-grid" style="display: flex; flex-wrap: wrap; justify-content: center; max-width: 720px; gap: 12px; padding: 0 20px;"></div>
-            <button class="button" onclick="hideLevelSelect()" style="margin-top: 40px; background: linear-gradient(145deg, #666, #999);">НАЗАД В МЕНЮ</button>
-        </div>
+<div id="board-wrapper"></div>
 
-        <!-- SETTINGS -->
-        <div id="screen-settings" class="screen">
-            <h1 style="font-size: 2.6rem;">НАСТРОЙКИ</h1>
-            <div style="margin: 40px 0; width: 100%; max-width: 420px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; font-size: 1.5rem;">
-                    <span>Звуки</span>
-                    <label class="switch">
-                        <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()">
-                        <span style="display: inline-block; width: 68px; height: 34px; background: #00ffcc; border-radius: 50px; position: relative; cursor: pointer;">
-                            <span id="sound-knob" style="position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; background: white; border-radius: 50%; transition: 0.3s;"></span>
-                        </span>
-                    </label>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; font-size: 1.5rem;">
-                    <span>Музыка фона</span>
-                    <label class="switch">
-                        <input type="checkbox" id="music-toggle" checked onchange="toggleMusic()">
-                        <span style="display: inline-block; width: 68px; height: 34px; background: #00ffcc; border-radius: 50px; position: relative; cursor: pointer;">
-                            <span id="music-knob" style="position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; background: white; border-radius: 50%; transition: 0.3s;"></span>
-                        </span>
-                    </label>
-                </div>
-            </div>
-            <button class="button" onclick="hideSettings()">ГОТОВО</button>
-        </div>
+<div style="text-align:center; margin:10px;">
+    <button onclick="pauseGame()" class="btn" style="width:140px;display:inline-block;">ПАУЗА</button>
+    <button onclick="showLevelSelect()" class="btn" style="width:140px;display:inline-block;">УРОВНИ</button>
+</div>
 
-        <!-- PLAYING HUD -->
-        <div id="hud" class="hud" style="display: none;">
-            <div class="hud-item">
-                <span>🏆</span>
-                <span id="score-text">0</span>
-            </div>
-            <div class="hud-item">
-                <span>⏳</span>
-                <span id="timer-text">120</span>
-            </div>
-            <div class="hud-item">
-                <span>📍</span>
-                <span id="level-text">Уровень 1</span>
-            </div>
-            <div style="display: flex; gap: 12px;">
-                <button onclick="pauseGame()" class="button" style="padding: 12px 28px; font-size: 1.2rem; min-width: auto; box-shadow: 0 8px 0 #c80080;">⏸ ПАУЗА</button>
-                <button onclick="restartLevel()" class="button" style="padding: 12px 28px; font-size: 1.2rem; min-width: auto; background: linear-gradient(145deg, #00ccff, #0099cc);">⟳</button>
-            </div>
-        </div>
-
-        <!-- PAUSED -->
-        <div id="screen-paused" class="screen" style="background: rgba(26, 0, 51, 0.92);">
-            <div class="modal">
-                <h1 style="font-size: 2.8rem; margin-bottom: 30px;">ПАУЗА</h1>
-                <button class="button" onclick="resumeGame()" style="margin: 10px;">ПРОДОЛЖИТЬ</button>
-                <button class="button" onclick="restartLevel()" style="margin: 10px; background: linear-gradient(145deg, #00ccff, #0099cc);">ПЕРЕЗАПУСТИТЬ УРОВЕНЬ</button>
-                <button class="button" onclick="goToMenu()" style="margin: 10px; background: linear-gradient(145deg, #ffaa00, #cc8800);">В ГЛАВНОЕ МЕНЮ</button>
-            </div>
-        </div>
-
-        <!-- WIN -->
-        <div id="screen-win" class="screen">
-            <div class="modal">
-                <h1 style="font-size: 3rem; background: linear-gradient(90deg, #00ffcc, #ffff00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ПОБЕДА! 🎉</h1>
-                <p id="win-score" style="font-size: 1.8rem; margin: 20px 0;">Счёт: 1240</p>
-                <button class="button" onclick="nextLevel()" style="background: linear-gradient(145deg, #00ffcc, #00cc99);">СЛЕДУЮЩИЙ УРОВЕНЬ →</button>
-                <button class="button" onclick="restartLevel()" style="margin-top: 12px; background: linear-gradient(145deg, #ffaa00, #cc8800);">ПОВТОРИТЬ</button>
-                <button class="button" onclick="goToMenu()" style="margin-top: 12px;">В МЕНЮ</button>
-            </div>
-        </div>
-
-        <!-- LOSE -->
-        <div id="screen-lose" class="screen">
-            <div class="modal">
-                <h1 style="font-size: 3rem; color: #ff3366;">ПОРАЖЕНИЕ 😢</h1>
-                <p id="lose-score" style="font-size: 1.8rem; margin: 20px 0;">Счёт: 680</p>
-                <button class="button" onclick="restartLevel()" style="background: linear-gradient(145deg, #ffaa00, #cc8800);">ПОВТОРИТЬ</button>
-                <button class="button" onclick="goToMenu()" style="margin-top: 12px;">В МЕНЮ</button>
-            </div>
-        </div>
+<!-- Главное меню -->
+<div id="modal-main" class="modal" style="display:flex;">
+    <div class="modal-content">
+        <h1 class="neon" style="font-size:38px;margin-bottom:30px;">CRYSTAL<br>MATCH</h1>
+        <button onclick="startNewGame()" class="btn">▶ НАЧАТЬ ИГРУ</button>
+        <button onclick="showLevelSelect()" class="btn">📋 ВЫБОР УРОВНЯ</button>
+        <button onclick="openShop()" class="btn">🛒 МАГАЗИН</button>
+        <button onclick="showTutorial()" class="btn">❔ КАК ИГРАТЬ</button>
     </div>
+</div>
 
-    <script>
-        // ================================================
-        // Match-3 Candy Crush — полный рабочий код
-        // Один HTML-файл, чистый HTML+CSS+JS, Canvas
-        // Автор: Grok (по запросу Алексея Дробота)
-        // ================================================
+<!-- Выбор уровня -->
+<div id="modal-levels" class="modal">
+    <div class="modal-content">
+        <h2 class="neon">ВЫБОР УРОВНЯ</h2>
+        <div id="levels-grid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin:25px 0;"></div>
+        <button onclick="hideAllModals()" class="btn">НАЗАД</button>
+    </div>
+</div>
 
-        const ROWS = 8;
-        const COLS = 8;
-        let TILE_SIZE = 72;
-        let OFFSET_X = 40;
-        let OFFSET_Y = 120;
+<!-- Победа -->
+<div id="modal-win" class="modal">
+    <div class="modal-content">
+        <h2 class="neon">ПОБЕДА!</h2>
+        <div id="win-stars" style="font-size:70px;margin:15px 0;">⭐⭐⭐</div>
+        <p>Счёт: <span id="win-score" class="neon"></span></p>
+        <button onclick="nextLevel()" class="btn">СЛЕДУЮЩИЙ УРОВЕНЬ</button>
+        <button onclick="hideAllModals();showLevelSelect()" class="btn">МЕНЮ УРОВНЕЙ</button>
+    </div>
+</div>
 
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
+<!-- Поражение -->
+<div id="modal-lose" class="modal">
+    <div class="modal-content">
+        <h2>ПОРАЖЕНИЕ</h2>
+        <p>Ходы закончились</p>
+        <button onclick="watchFakeAd('life')" class="btn">📺 +1 ЖИЗНЬ (реклама)</button>
+        <button onclick="restartLevel()" class="btn">ПОВТОРИТЬ УРОВЕНЬ</button>
+        <button onclick="hideAllModals();showLevelSelect()" class="btn">В МЕНЮ</button>
+    </div>
+</div>
 
-        // ==================== ДАННЫЕ ИГРЫ ====================
-        let grid = [];
-        let particles = [];
-        let fallingCandies = []; // анимированные падающие конфеты
-        let currentState = 'MENU';
-        let score = 0;
-        let timeLeft = 120;
-        let timerInterval = null;
-        let currentLevelIndex = 0;
-        let selected = null; // {row, col}
-        let isDragging = false;
-        let lastMoveTime = Date.now();
-        let hintTimeout = null;
-        let soundEnabled = true;
-        let musicEnabled = true;
-        let audioContext;
+<!-- Магазин -->
+<div id="modal-shop" class="modal">
+    <div class="modal-content">
+        <h2 class="neon">МАГАЗИН</h2>
+        <p style="margin:15px 0;">💎 <span id="shop-coins">250</span></p>
+        
+        <button onclick="buyItem(0)" class="btn">❤️ Extra Life — 100 монет</button>
+        <button onclick="buyItem(1)" class="btn">🌈 Color Bomb — 80 монет</button>
+        <button onclick="buyItem(2)" class="btn">⚡ Line Blast — 70 монет</button>
+        <button onclick="buyItem(3)" class="btn">💎 +500 монет</button>
+        
+        <button onclick="buyPremium()" class="btn" style="background:linear-gradient(#ffd700,#ffaa00);">PREMIUM 1.99$ (+2000 монет + 3 жизни)</button>
+        <button onclick="watchFakeAd('coins')" class="btn">📺 Смотреть рекламу (+100 монет)</button>
+        <button onclick="hideAllModals()" class="btn">ЗАКРЫТЬ</button>
+    </div>
+</div>
 
-        // 7 типов конфет + эмодзи
-        const CANDY_EMOJIS = ['🍭', '🍬', '🍫', '🍩', '🍪', '🧁', '🍰'];
-        const CANDY_COLORS = ['#ff3366', '#ffcc33', '#33ccff', '#33ff99', '#cc33ff', '#ff6633', '#66ffcc'];
+<!-- Нет жизней -->
+<div id="modal-nolives" class="modal">
+    <div class="modal-content">
+        <h2>ЖИЗНИ ЗАКОНЧИЛИСЬ</h2>
+        <button onclick="watchFakeAd('life')" class="btn">📺 +1 ЖИЗНЬ (реклама)</button>
+        <button onclick="hideAllModals()" class="btn">Закрыть</button>
+    </div>
+</div>
 
-        // Уровни (5 уровней с возрастающей сложностью)
-        let levels = [
-            { id: 1, goal: 1200, time: 120, multiplier: 1 },
-            { id: 2, goal: 2100, time: 110, multiplier: 1.2 },
-            { id: 3, goal: 3400, time: 100, multiplier: 1.4 },
-            { id: 4, goal: 4800, time: 90,  multiplier: 1.6 },
-            { id: 5, goal: 6500, time: 80,  multiplier: 1.8 }
-        ];
+<!-- Tutorial -->
+<div id="modal-tutorial" class="modal">
+    <div class="modal-content">
+        <h2 class="neon">КАК ИГРАТЬ</h2>
+        <p style="text-align:left;line-height:1.7;margin:20px 0;">
+            • Кликни по кристаллу<br>
+            • Кликни по соседнему — они поменяются местами<br>
+            • Собери 3 и более одинаковых<br>
+            • 4+ и 5+ дают мощные бонусы
+        </p>
+        <button onclick="hideAllModals()" class="btn">ПОНЯТНО!</button>
+    </div>
+</div>
 
-        // Сохранение прогресса
-        let progress = {
-            completed: [],
-            highScores: {}
-        };
+<!-- Пауза -->
+<div id="modal-pause" class="modal">
+    <div class="modal-content">
+        <h2 class="neon">ПАУЗА</h2>
+        <button onclick="hideAllModals()" class="btn">ПРОДОЛЖИТЬ ИГРУ</button>
+        <button onclick="hideAllModals();showLevelSelect()" class="btn">ВЫБОР УРОВНЯ</button>
+    </div>
+</div>
 
-        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
-        function initAudio() {
-            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+<script>
+// ==================== ИГРА ====================
+let board = [], gems = [], score = 0, moves = 25, currentLevel = 1, lives = 5, coins = 250;
+let selected = null;
+let isAnimating = false;
+
+const GEM_EMOJI = ['','🔴','🔵','🟢','🟡','🟣','🟠'];
+const GEM_CLASS = ['','red','blue','green','yellow','purple','orange'];
+
+const LEVEL_DATA = [
+    {target:1200, moves:22}, {target:1800, moves:24}, {target:2500, moves:24},
+    {target:3200, moves:25}, {target:4000, moves:25}, {target:4800, moves:26},
+    {target:5700, moves:27}, {target:6800, moves:28}, {target:8000, moves:29},
+    {target:10000,moves:30}
+];
+
+function createBoard() {
+    const wrapper = document.getElementById('board-wrapper');
+    wrapper.innerHTML = '';
+    board = Array.from({length:8}, () => Array(8).fill(0));
+    gems = Array.from({length:8}, () => Array(8).fill(null));
+
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            let type = Math.floor(Math.random()*6) + 1;
+            board[r][c] = type;
+
+            const gem = document.createElement('div');
+            gem.className = `gem ${GEM_CLASS[type]}`;
+            gem.innerHTML = GEM_EMOJI[type];
+            gem.dataset.r = r;
+            gem.dataset.c = c;
+            gem.addEventListener('click', gemClick);
+            wrapper.appendChild(gem);
+            gems[r][c] = gem;
         }
+    }
+    // Убираем начальные матчи
+    while (clearMatches(true)) {}
+}
 
-        function playSound(freq, duration = 0.08, type = 'sine', volume = 0.6) {
-            if (!soundEnabled || !audioContext) return;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
-            osc.type = type;
-            gain.gain.value = volume;
-            osc.connect(gain).connect(audioContext.destination);
-            osc.start();
-            gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
-            osc.stop(audioContext.currentTime + duration + 0.1);
+function gemClick(e) {
+    if (isAnimating) return;
+    const r = +e.target.dataset.r;
+    const c = +e.target.dataset.c;
+
+    if (!selected) {
+        selected = {r, c, el: e.target};
+        e.target.classList.add('selected');
+        return;
+    }
+
+    if (selected.r === r && selected.c === c) {
+        selected.el.classList.remove('selected');
+        selected = null;
+        return;
+    }
+
+    const dr = Math.abs(selected.r - r);
+    const dc = Math.abs(selected.c - c);
+
+    if (dr + dc === 1) {
+        swapGems(selected.r, selected.c, r, c);
+    } else {
+        selected.el.classList.remove('selected');
+        selected = {r, c, el: e.target};
+        e.target.classList.add('selected');
+    }
+}
+
+function swapGems(r1, c1, r2, c2) {
+    isAnimating = true;
+    
+    // Меняем данные
+    [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    
+    // Меняем DOM
+    const g1 = gems[r1][c1];
+    const g2 = gems[r2][c2];
+    gems[r1][c1] = g2; gems[r2][c2] = g1;
+    
+    g1.dataset.r = r2; g1.dataset.c = c2;
+    g2.dataset.r = r1; g2.dataset.c = c1;
+
+    // Анимация свапа
+    g1.style.transition = g2.style.transition = 'transform 0.25s';
+    g1.style.transform = `translate(${ (c2-c1)*62 }px, ${ (r2-r1)*62 }px)`;
+    g2.style.transform = `translate(${ (c1-c2)*62 }px, ${ (r1-r2)*62 }px)`;
+
+    setTimeout(() => {
+        g1.style.transition = g2.style.transition = 'none';
+        g1.style.transform = g2.style.transform = 'none';
+        
+        // Перерисовываем
+        renderBoard();
+        selected = null;
+
+        if (clearMatches()) {
+            moves--;
+            updateHeader();
+            setTimeout(dropGems, 400);
+        } else {
+            // Откатываем свап
+            [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+            gems[r1][c1] = g1; gems[r2][c2] = g2;
+            g1.dataset.r = r1; g1.dataset.c = c1;
+            g2.dataset.r = r2; g2.dataset.c = c2;
+            renderBoard();
+            isAnimating = false;
         }
+    }, 260);
+}
 
-        function playMatchSound(count) {
-            if (count >= 5) {
-                playSound(1200, 0.4, 'sawtooth', 0.9);
-                setTimeout(() => playSound(800, 0.3, 'triangle'), 60);
-            } else if (count === 4) {
-                playSound(900, 0.25, 'sine', 0.8);
-            } else {
-                playSound(700 + count * 80, 0.12);
+function renderBoard() {
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const type = board[r][c];
+            const gem = gems[r][c];
+            if (!gem) continue;
+            gem.className = `gem ${GEM_CLASS[type]}`;
+            gem.innerHTML = GEM_EMOJI[type];
+        }
+    }
+}
+
+function clearMatches(silent = false) {
+    let toRemove = [];
+    // горизонтальные
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 6; c++) {
+            if (board[r][c] && board[r][c] === board[r][c+1] && board[r][c] === board[r][c+2]) {
+                toRemove.push([r,c],[r,c+1],[r,c+2]);
             }
         }
-
-        function createParticle(x, y, color) {
-            for (let i = 0; i < 18; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const vel = 2 + Math.random() * 5;
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(angle) * vel,
-                    vy: Math.sin(angle) * vel - 3,
-                    life: 38 + Math.random() * 22,
-                    color: color,
-                    size: 6 + Math.random() * 8
-                });
+    }
+    // вертикальные
+    for (let c = 0; c < 8; c++) {
+        for (let r = 0; r < 6; r++) {
+            if (board[r][c] && board[r][c] === board[r+1][c] && board[r][c] === board[r+2][c]) {
+                toRemove.push([r,c],[r+1,c],[r+2,c]);
             }
         }
+    }
 
-        // ==================== ГЕНЕРАЦИЯ И ВАЛИДАЦИЯ ПОЛЯ ====================
-        function createRandomCandy() {
-            const type = Math.floor(Math.random() * 7);
-            return {
-                type: type,
-                special: null, // 'stripedH', 'stripedV', 'wrapped', 'bomb'
-                emoji: CANDY_EMOJIS[type],
-                color: CANDY_COLORS[type],
-                offsetY: 0,
-                scale: 1,
-                shake: 0
-            };
-        }
+    if (toRemove.length === 0) return false;
 
-        // VALIDATION: Полная проверка на наличие матчей
-        function findAllMatches() {
-            let matches = new Set();
+    if (!silent) score += toRemove.length * 80;
 
-            // Горизонтальные
-            for (let r = 0; r < ROWS; r++) {
-                let count = 1;
-                for (let c = 0; c < COLS; c++) {
-                    if (c < COLS - 1 && grid[r][c].type === grid[r][c + 1].type && grid[r][c].type !== null) {
-                        count++;
-                    } else {
-                        if (count >= 3) {
-                            for (let k = 0; k < count; k++) {
-                                matches.add(`${r},${c - count + 1 + k}`);
-                            }
-                        }
-                        count = 1;
-                    }
+    // Удаляем
+    toRemove.forEach(([r,c]) => {
+        board[r][c] = 0;
+        const gem = gems[r][c];
+        if (gem) gem.style.transition = 'transform 0.4s, opacity 0.4s';
+        if (gem) gem.style.transform = 'scale(0.2)';
+        if (gem) gem.style.opacity = '0';
+    });
+
+    setTimeout(() => renderBoard(), 420);
+    return true;
+}
+
+function dropGems() {
+    let moved = false;
+    for (let c = 0; c < 8; c++) {
+        let write = 7;
+        for (let r = 7; r >= 0; r--) {
+            if (board[r][c] !== 0) {
+                if (r !== write) {
+                    board[write][c] = board[r][c];
+                    gems[write][c] = gems[r][c];
+                    gems[write][c].dataset.r = write;
+                    board[r][c] = 0;
+                    moved = true;
                 }
+                write--;
             }
-
-            // Вертикальные
-            for (let c = 0; c < COLS; c++) {
-                let count = 1;
-                for (let r = 0; r < ROWS; r++) {
-                    if (r < ROWS - 1 && grid[r][c].type === grid[r + 1][c].type && grid[r][c].type !== null) {
-                        count++;
-                    } else {
-                        if (count >= 3) {
-                            for (let k = 0; k < count; k++) {
-                                matches.add(`${r - count + 1 + k},${c}`);
-                            }
-                        }
-                        count = 1;
-                    }
-                }
-            }
-
-            return Array.from(matches).map(pos => {
-                const [r, c] = pos.split(',').map(Number);
-                return { row: r, col: c };
-            });
         }
-
-        // VALIDATION: Проверка L / T / + формы для Wrapped
-        function detectSpecialShape(matches) {
-            const map = new Map();
-            matches.forEach(m => {
-                const key = `${m.row},${m.col}`;
-                map.set(key, true);
-            });
-
-            for (let r = 1; r < ROWS - 1; r++) {
-                for (let c = 1; c < COLS - 1; c++) {
-                    const key = `${r},${c}`;
-                    if (!map.has(key)) continue;
-
-                    // Проверка T, L, +
-                    let countH = 0, countV = 0;
-                    // горизонталь
-                    if (map.has(`${r},${c-1}`)) countH++;
-                    if (map.has(`${r},${c+1}`)) countH++;
-                    // вертикаль
-                    if (map.has(`${r-1},${c}`)) countV++;
-                    if (map.has(`${r+1},${c}`)) countV++;
-
-                    // L / T / +
-                    if ((countH === 2 && countV === 1) || (countH === 1 && countV === 2) || (countH === 2 && countV === 2)) {
-                        return { row: r, col: c, shape: 'wrapped' };
-                    }
-                }
-            }
-            return null;
+        // Заполняем сверху
+        for (let r = write; r >= 0; r--) {
+            const type = Math.floor(Math.random()*6) + 1;
+            board[r][c] = type;
+            
+            const gem = document.createElement('div');
+            gem.className = `gem ${GEM_CLASS[type]}`;
+            gem.innerHTML = GEM_EMOJI[type];
+            gem.dataset.r = r;
+            gem.dataset.c = c;
+            gem.addEventListener('click', gemClick);
+            document.getElementById('board-wrapper').appendChild(gem);
+            gems[r][c] = gem;
+            gem.style.opacity = '0';
+            gem.style.transform = 'translateY(-400px)';
+            setTimeout(() => {
+                gem.style.transition = 'all 0.6s cubic-bezier(0.2, 0.8, 0.4, 1)';
+                gem.style.opacity = '1';
+                gem.style.transform = 'translateY(0)';
+            }, 50);
+            moved = true;
         }
-
-        // VALIDATION: Нет мгновенных матчей при генерации
-        function hasAnyMatches() {
-            return findAllMatches().length > 0;
+    }
+    setTimeout(() => {
+        renderBoard();
+        if (clearMatches()) {
+            setTimeout(dropGems, 450);
+        } else {
+            isAnimating = false;
+            checkLevelEnd();
         }
+    }, 650);
+}
 
-        function generateValidBoard() {
-            do {
-                grid = Array.from({ length: ROWS }, () =>
-                    Array.from({ length: COLS }, () => createRandomCandy())
-                );
-            } while (hasAnyMatches());
+function checkLevelEnd() {
+    if (score >= LEVEL_DATA[currentLevel-1].target) {
+        showWin();
+    } else if (moves <= 0) {
+        showLose();
+    }
+}
 
-            // VALIDATION: Защита от зависаний — максимум 30 попыток генерации
-            console.log('%c✅ Поле сгенерировано без начальных матчей', 'color:#0f0;font-weight:bold');
-        }
+function updateHeader() {
+    document.getElementById('level-num').textContent = currentLevel;
+    document.getElementById('coins').textContent = coins;
+    document.getElementById('lives').textContent = '❤️'.repeat(Math.min(5, lives));
+}
 
-        // ==================== СПЕЦИАЛЬНЫЕ ЭЛЕМЕНТЫ ====================
-        function createSpecial(row, col, typeOfSpecial, direction = null) {
-            if (!grid[row] || !grid[row][col]) return;
-            const candy = grid[row][col];
-            candy.special = typeOfSpecial;
-            if (typeOfSpecial === 'stripedH' || typeOfSpecial === 'stripedV') {
-                candy.emoji = '🍭';
-            } else if (typeOfSpecial === 'wr
+function startNewGame() {
+    hideAllModals();
+    currentLevel = 1;
+    score = 0;
+    moves = LEVEL_DATA[0].moves;
+    lives = Math.max(1, lives);
+    createBoard();
+    updateHeader();
+}
+
+function loadLevel(lvl) {
+    hideAllModals();
+    if (lives < 1) {
+        document.getElementById('modal-nolives').style.display = 'flex';
+        return;
+    }
+    lives--;
+    currentLevel = lvl;
+    score = 0;
+    moves = LEVEL_DATA[lvl-1].moves;
+    createBoard();
+    updateHeader();
+}
+
+function showWin() {
+    coins += 150;
+    document.getElementById('win-score').textContent = score;
+    document.getElementById('modal-win').style.display = 'flex';
+}
+
+function nextLevel() {
+    hideAllModals();
+    if (currentLevel < 10) {
+        loadLevel(currentLevel + 1);
+    } else {
+        alert("Поздравляем! Вы прошли все уровни!");
+        showLevelSelect();
+    }
+}
+
+function showLose() {
+    document.getElementById('modal-lose').style.display = 'flex';
+}
+
+function restartLevel() {
+    hideAllModals();
+    if (lives > 0) loadLevel(currentLevel);
+}
+
+function pauseGame() {
+    document.getElementById('modal-pause').style.display = 'flex';
+}
+
+// Магазин
+function openShop() {
+    hideAllModals();
+    document.getElementById('shop-coins').textContent = coins;
+    document.getElementById('modal-shop').style.display = 'flex';
+}
+
+function buyItem(n) {
+    if (n === 0 && coins >= 100) { coins -= 100; lives = Math.min(5,lives+1); }
+    if (n === 1 && coins >= 80)  { coins -= 80; /* color bomb */ }
+    if (n === 2 && coins >= 70)  { coins -= 70; /* line blast */ }
+    if (n === 3) coins += 500;
+    updateHeader();
+}
+
+function buyPremium() {
+    coins += 2000;
+    lives = Math.min(5, lives + 3);
+    updateHeader();
+}
+
+// Фейковая реклама
+function watchFakeAd(type) {
+    hideAllModals();
+    setTimeout(() => {
+        if (type === 'life') lives = Math.min(5, lives + 1);
+        if (type === 'coins') coins += 100;
+        updateHeader();
+    }, 1200);
+}
+
+// Уровни
+function showLevelSelect() {
+    hideAllModals();
+    const grid = document.getElementById('levels-grid');
+    grid.innerHTML = '';
+    for (let i = 1; i <= 10; i++) {
+        const div = document.createElement('div');
+        div.style.cssText = `width:55px;height:55px;border-radius:50%;background:#330066;border:4px solid ${i<=currentLevel?'#00ffff':'#555'};display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;`;
+        div.textContent = i;
+        if (i > currentLevel + 1) div.style.opacity = '0.3';
+        else div.onclick = () => loadLevel(i);
+        grid.appendChild(div);
+    }
+    document.getElementById('modal-levels').style.display = 'flex';
+}
+
+function showTutorial() {
+    hideAllModals();
+    document.getElementById('modal-tutorial').style.display = 'flex';
+}
+
+function hideAllModals() {
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+}
+
+// Запуск
+window.onload = () => {
+    document.getElementById('modal-main').style.display = 'flex';
+    updateHeader();
+};
+</script>
+</body>
+            </html>

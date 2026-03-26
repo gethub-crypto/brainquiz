@@ -17,12 +17,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-family: 'Segoe UI', 'Poppins', 'Orbitron', system-ui, -apple-system, sans-serif;
+            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
             margin: 0;
             padding: 20px;
         }
 
-        /* Glow и основной контейнер */
         .game-container {
             max-width: 750px;
             width: 100%;
@@ -31,10 +30,8 @@
             border-radius: 64px;
             padding: 18px 16px 22px;
             box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 2px rgba(0, 255, 255, 0.15), inset 0 1px 2px rgba(255,255,255,0.1);
-            transition: all 0.2s;
         }
 
-        /* панель */
         .top-bar {
             display: flex;
             flex-wrap: wrap;
@@ -63,10 +60,6 @@
             font-size: 1rem;
         }
 
-        .stat span:first-child {
-            font-size: 1.2rem;
-        }
-
         .lives-hearts {
             display: flex;
             gap: 6px;
@@ -90,7 +83,6 @@
             transition: 0.1s linear;
             font-family: inherit;
             font-size: 0.85rem;
-            backdrop-filter: blur(4px);
         }
 
         button:active {
@@ -119,7 +111,6 @@
             cursor: pointer;
             transition: 0.07s linear;
             box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            text-shadow: 0 0 5px currentColor;
             transform: scale(1);
         }
 
@@ -128,26 +119,11 @@
             transform: scale(0.98);
         }
 
-        /* анимация падения/удаления */
-        .cell-match-destroy {
-            animation: popOff 0.2s ease forwards;
-        }
-
         @keyframes popOff {
             0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0; background: white; }
+            100% { transform: scale(0.8); opacity: 0; }
         }
 
-        .fall-animation {
-            animation: fallDown 0.2s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-        }
-
-        @keyframes fallDown {
-            from { transform: translateY(-80px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
-        /* модалки */
         .modal {
             position: fixed;
             top: 0; left: 0;
@@ -158,8 +134,8 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
-            font-family: monospace;
         }
+        
         .modal-card {
             background: #0e1a2b;
             max-width: 340px;
@@ -171,13 +147,13 @@
             box-shadow: 0 0 35px cyan;
             color: white;
         }
+        
         .modal-card h3 { margin-top: 0; color: cyan; }
         .flex-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
-        .btn-neon { background: #2a3f54; border-radius: 40px; padding: 8px 20px; color: white; font-weight: bold; }
+        .btn-neon { background: #2a3f54; border-radius: 40px; padding: 8px 20px; color: white; font-weight: bold; cursor: pointer; border: none; }
         .progress-bar { background: #222; height: 12px; border-radius: 20px; overflow: hidden; margin: 15px 0; }
         .progress-fill { width: 0%; height: 100%; background: cyan; transition: 0.1s linear; }
 
-        /* инвентарь бустеров */
         .booster-bar {
             display: flex;
             gap: 8px;
@@ -185,6 +161,7 @@
             margin-bottom: 12px;
             flex-wrap: wrap;
         }
+        
         .booster-item {
             background: #0f212f;
             border-radius: 50px;
@@ -225,7 +202,6 @@
         <button id="pauseBtn">⏸️ ПАУЗА</button>
         <button id="levelSelectBtn">🌍 ВЫБОР УРОВНЯ</button>
     </div>
-    <div id="extraMsg" style="text-align:center; margin-top: 10px; font-size:12px; color:#0ff;"></div>
 </div>
 
 <script>
@@ -233,65 +209,72 @@
         // ---------- КОНФИГ ----------
         const ROWS = 8, COLS = 8;
         const GEM_TYPES = 6;
-        const COLORS = ['🔴','🔵','🟢','🟡','🟣','🟠']; // эмодзи для красоты
-        const BONUS_MAP = {3:10,4:20,5:50};
+        const COLORS = ['🔴','🔵','🟢','🟡','🟣','🟠'];
         let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
         let selectedRow = -1, selectedCol = -1;
         let currentScore = 0, currentLevel = 1, movesLeft = 25;
         let coins = 500, lives = 5, lastRegen = Date.now();
         let levelTargets = [0,200,400,700,1100,1600,2200,3000,4000,5200,7000];
         let levelMoves = [0,25,24,23,22,21,20,19,18,17,16];
-        let completedLevels = [1]; // пройденные уровни
+        let completedLevels = [1];
         let bestScores = {};
         let boosterInv = { bombT:0, bombL:0, colorBomb:0, lineBlast:0 };
         let gameActive = true;
         let processing = false;
-        let gridDom = document.getElementById('gameGrid');
-        let coinSpan = document.getElementById('coinCount');
-        let scoreSpan = document.getElementById('scoreCurrent');
-        let levelNumSpan = document.getElementById('levelNum');
-        let movesLeftSpan = document.getElementById('movesLeft');
-        let livesDisplay = document.getElementById('livesDisplay');
-        let liveTimerSpan = document.getElementById('liveTimer');
         
-        // звуки простые (web audio)
+        // DOM элементы
+        const gridDom = document.getElementById('gameGrid');
+        const coinSpan = document.getElementById('coinCount');
+        const scoreSpan = document.getElementById('scoreCurrent');
+        const levelNumSpan = document.getElementById('levelNum');
+        const movesLeftSpan = document.getElementById('movesLeft');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const liveTimerSpan = document.getElementById('liveTimer');
+        
+        // Звуки (отложенная инициализация)
         let audioCtx = null;
+        let soundEnabled = false;
+        
+        function initAudio() {
+            if (!audioCtx && !soundEnabled) {
+                try {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    soundEnabled = true;
+                } catch(e) { console.log("Audio not supported"); }
+            }
+        }
+        
         function playBeep(type){
-            try{
-                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+            if(!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 let freq = type==='swap'? 440 : type==='match'? 660 : type==='fall'? 330 : type==='win'? 880 : 550;
                 osc.frequency.value = freq;
-                gain.gain.value = 0.2;
+                gain.gain.value = 0.15;
                 osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime+0.3);
+                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime+0.25);
                 osc.stop(audioCtx.currentTime+0.2);
-            }catch(e){}
+            } catch(e) {}
         }
         
-        // сохранение
+        // Сохранение
         function saveGame(){
-            let data = {
-                currentLevel, currentScore, coins, lives, lastRegen, completedLevels,
-                bestScores, boosterInv, levelTargets, levelMoves
-            };
+            const data = { currentLevel, currentScore, coins, lives, lastRegen, completedLevels, bestScores, boosterInv };
             localStorage.setItem('CrystalMatchSave', JSON.stringify(data));
         }
         
         function loadSave(){
-            let raw = localStorage.getItem('CrystalMatchSave');
+            const raw = localStorage.getItem('CrystalMatchSave');
             if(raw){
                 try{
-                    let d = JSON.parse(raw);
+                    const d = JSON.parse(raw);
                     currentLevel = d.currentLevel; currentScore = d.currentScore; coins = d.coins; lives = d.lives;
                     lastRegen = d.lastRegen; completedLevels = d.completedLevels || [1];
                     bestScores = d.bestScores || {}; boosterInv = d.boosterInv || { bombT:0, bombL:0, colorBomb:0, lineBlast:0 };
-                    if(d.levelTargets) levelTargets = d.levelTargets;
-                    if(d.levelMoves) levelMoves = d.levelMoves;
-                }catch(e){}
+                } catch(e){}
             }
             if(!completedLevels.includes(currentLevel)) completedLevels.push(currentLevel);
             regenLives();
@@ -299,13 +282,12 @@
         }
         
         function regenLives(){
-            let now = Date.now();
-            let diff = now - lastRegen;
-            let gained = Math.floor(diff / (30*60*1000));
+            const now = Date.now();
+            const diff = now - lastRegen;
+            const gained = Math.floor(diff / (30*60*1000));
             if(gained>0 && lives<5){
                 lives = Math.min(5, lives+gained);
                 lastRegen = now - (diff % (30*60*1000));
-                if(lives>5) lives=5;
                 saveGame();
             }
             if(lives===5) lastRegen = now;
@@ -313,10 +295,10 @@
         
         function updateLivesTimerUI(){
             if(lives>=5){ liveTimerSpan.innerText='(полно)'; return; }
-            let next = lastRegen + 30*60*1000;
-            let remain = Math.max(0, next - Date.now());
-            let mins = Math.floor(remain/60000);
-            let secs = Math.floor((remain%60000)/1000);
+            const next = lastRegen + 30*60*1000;
+            const remain = Math.max(0, next - Date.now());
+            const mins = Math.floor(remain/60000);
+            const secs = Math.floor((remain%60000)/1000);
             liveTimerSpan.innerText=`(+${mins}:${secs<10?'0'+secs:secs})`;
         }
         
@@ -328,22 +310,7 @@
             return true;
         }
         
-        function initLevel(){
-            if(!spendLife()) return false;
-            currentScore = 0;
-            let target = levelTargets[currentLevel];
-            movesLeft = levelMoves[currentLevel];
-            updateUI();
-            generateRandomBoard();
-            while(scanMatches().length>0) clearMatchesAndRefill();
-            gameActive = true;
-            processing = false;
-            selectedRow = -1; selectedCol = -1;
-            renderBoard();
-            playBeep('fall');
-            return true;
-        }
-        
+        // Генерация доски
         function generateRandomBoard(){
             for(let i=0;i<ROWS;i++){
                 for(let j=0;j<COLS;j++){
@@ -352,8 +319,10 @@
             }
         }
         
+        // Поиск матчей
         function scanMatches(){
-            let matches = [];
+            const matches = [];
+            // Горизонтальные
             for(let i=0;i<ROWS;i++){
                 let len=1;
                 for(let j=1;j<COLS;j++){
@@ -365,6 +334,7 @@
                 }
                 if(len>=3) for(let k=COLS-len;k<COLS;k++) matches.push([i,k]);
             }
+            // Вертикальные
             for(let j=0;j<COLS;j++){
                 let len=1;
                 for(let i=1;i<ROWS;i++){
@@ -379,37 +349,48 @@
             return matches;
         }
         
+        // Удаление и гравитация (исправлено!)
         async function clearMatchesAndRefill(){
             let matches = scanMatches();
             if(matches.length===0) return false;
-            let matchSet = new Set(matches.map(m=>`${m[0]},${m[1]}`));
-            let matchCount = matchSet.size;
-            let bonusPoints = 0;
-            if(matchCount>=3) bonusPoints = 10 * (matchCount>=5?50: matchCount>=4?20:10);
+            
+            const matchSet = new Set(matches.map(m=>`${m[0]},${m[1]}`));
+            const bonusPoints = matchSet.size * 10;
             currentScore += bonusPoints;
             updateUI();
-            for(let m of matches){
-                let r=m[0],c=m[1];
+            
+            for(const [r,c] of matches){
                 board[r][c] = -1;
             }
             renderBoard();
-            await delay(150);
-            applyGravity();
-            renderBoard();
-            await delay(120);
-            while(scanMatches().length>0){
-                await clearMatchesAndRefill();
+            await delay(100);
+            
+            // Гравитация: падение вниз
+            for(let c=0;c<COLS;c++){
+                const columnValues = [];
+                for(let r=ROWS-1;r>=0;r--){
+                    if(board[r][c] !== -1){
+                        columnValues.push(board[r][c]);
+                    }
+                }
+                while(columnValues.length < ROWS){
+                    columnValues.push(Math.floor(Math.random()*GEM_TYPES));
+                }
+                for(let r=0;r<ROWS;r++){
+                    board[ROWS-1-r][c] = columnValues[r];
+                }
             }
+            renderBoard();
+            await delay(100);
             playBeep('match');
             return true;
         }
         
-        async function applyGravity(){
-            for(let c=0;c<COLS;c++){
-                let column = [];
-                for(let r=ROWS-1;r>=0;r--) if(board[r][c]!==-1) column.push(board[r][c]);
-                while(column.length<ROWS) column.push(Math.floor(Math.random()*GEM_TYPES));
-                for(let r=0;r<ROWS;r++) board[ROWS-1-r][c] = column[r];
+        async function processMatchesAndGravity(){
+            let anyMatch = true;
+            while(anyMatch){
+                anyMatch = await clearMatchesAndRefill();
+                if(anyMatch) await delay(80);
             }
         }
         
@@ -417,43 +398,48 @@
         
         async function trySwap(r1,c1,r2,c2){
             if(Math.abs(r1-r2)+Math.abs(c1-c2)!==1) return false;
-            let temp = board[r1][c1];
+            
+            const temp = board[r1][c1];
             board[r1][c1] = board[r2][c2];
             board[r2][c2] = temp;
-            let matches = scanMatches();
+            
+            const matches = scanMatches();
             if(matches.length===0){
-                temp = board[r1][c1];
+                // Отмена свопа
+                const temp2 = board[r1][c1];
                 board[r1][c1] = board[r2][c2];
-                board[r2][c2] = temp;
+                board[r2][c2] = temp2;
                 return false;
             }
+            
             playBeep('swap');
             movesLeft--;
             updateUI();
             renderBoard();
             await delay(80);
-            await clearMatchesAndRefill();
-            if(movesLeft<=0){
+            await processMatchesAndGravity();
+            
+            if(movesLeft<=0 || currentScore >= levelTargets[currentLevel]){
                 checkLevelComplete();
             }
             return true;
         }
         
         function checkLevelComplete(){
-            if(currentScore>=levelTargets[currentLevel]){
-                let stars = currentScore>=levelTargets[currentLevel]*1.5?3: currentScore>=levelTargets[currentLevel]?2:1;
-                let rewardCoins = 100 + stars*30;
+            if(currentScore >= levelTargets[currentLevel]){
+                const stars = currentScore >= levelTargets[currentLevel]*1.5 ? 3 : currentScore >= levelTargets[currentLevel] ? 2 : 1;
+                const rewardCoins = 100 + stars*30;
                 coins += rewardCoins;
                 if(!completedLevels.includes(currentLevel)) completedLevels.push(currentLevel);
                 if(currentLevel<10 && !completedLevels.includes(currentLevel+1)) completedLevels.push(currentLevel+1);
                 bestScores[currentLevel] = Math.max(bestScores[currentLevel]||0, currentScore);
                 saveGame();
-                showWinModal(stars,rewardCoins);
-                gameActive=false;
+                showWinModal(stars, rewardCoins);
+                gameActive = false;
                 playBeep('win');
             } else if(movesLeft<=0){
                 showLoseModal();
-                gameActive=false;
+                gameActive = false;
             }
         }
         
@@ -461,24 +447,20 @@
             gridDom.innerHTML='';
             for(let i=0;i<ROWS;i++){
                 for(let j=0;j<COLS;j++){
-                    let val = board[i][j];
-                    let gemChar = (val>=0 && val<GEM_TYPES) ? COLORS[val] : '💎';
-                    let div = document.createElement('div');
+                    const val = board[i][j];
+                    const gemChar = (val>=0 && val<GEM_TYPES) ? COLORS[val] : '💎';
+                    const div = document.createElement('div');
                     div.className = 'cell';
                     if(selectedRow===i && selectedCol===j) div.classList.add('selected');
                     div.innerText = gemChar;
-                    div.style.background = `radial-gradient(circle at 30% 35%, ${getGemColor(val)}, #1a2a3a)`;
-                    div.style.boxShadow = `0 0 5px ${getGemColor(val)}`;
+                    const hues = ['#ff3366','#33ccff','#33ff66','#ffcc33','#aa66ff','#ff9933'];
+                    const color = val>=0 ? hues[val%hues.length] : '#888';
+                    div.style.background = `radial-gradient(circle at 30% 35%, ${color}, #1a2a3a)`;
+                    div.style.boxShadow = `0 0 5px ${color}`;
                     div.addEventListener('click', (function(row,col){ return function(){ onCellClick(row,col); }; })(i,j));
                     gridDom.appendChild(div);
                 }
             }
-        }
-        
-        function getGemColor(type){
-            const hues = ['#ff3366','#33ccff','#33ff66','#ffcc33','#aa66ff','#ff9933'];
-            if(type>=0) return hues[type%hues.length];
-            return '#888';
         }
         
         function onCellClick(row,col){
@@ -488,16 +470,13 @@
                 renderBoard();
                 return;
             }
-            let success = false;
-            (async ()=>{
+            
+            (async () => {
                 processing=true;
-                success = await trySwap(selectedRow,selectedCol,row,col);
+                await trySwap(selectedRow, selectedCol, row, col);
                 selectedRow=-1; selectedCol=-1;
                 renderBoard();
                 processing=false;
-                if(!success && !processing){
-                    // просто сброс
-                }
                 updateUI();
             })();
         }
@@ -507,7 +486,7 @@
             scoreSpan.innerText = currentScore;
             levelNumSpan.innerText = currentLevel;
             movesLeftSpan.innerText = movesLeft;
-            let heartStr = '❤️'.repeat(lives)+'🖤'.repeat(5-lives);
+            const heartStr = '❤️'.repeat(lives)+'🖤'.repeat(5-lives);
             livesDisplay.innerHTML = `${heartStr} `;
             updateLivesTimerUI();
             document.getElementById('bombT').innerText = boosterInv.bombT;
@@ -516,17 +495,42 @@
             document.getElementById('lineBlast').innerText = boosterInv.lineBlast;
         }
         
-        // модалки
+        function initLevel(){
+            if(!spendLife()) return false;
+            currentScore = 0;
+            movesLeft = levelMoves[currentLevel];
+            updateUI();
+            generateRandomBoard();
+            // Убираем начальные матчи
+            (async () => {
+                await processMatchesAndGravity();
+                gameActive = true;
+                selectedRow = -1;
+                selectedCol = -1;
+                renderBoard();
+                playBeep('fall');
+            })();
+            return true;
+        }
+        
+        // Модальные окна
         function showModal(html, onClose){
-            let modalDiv = document.createElement('div');
+            const modalDiv = document.createElement('div');
             modalDiv.className = 'modal';
             modalDiv.innerHTML = `<div class="modal-card">${html}<div class="flex-buttons"><button class="btn-neon" id="modalCloseBtn">Закрыть</button></div></div>`;
             document.body.appendChild(modalDiv);
-            document.getElementById('modalCloseBtn').onclick = ()=>{
+            document.getElementById('modalCloseBtn').onclick = () => {
                 modalDiv.remove();
                 if(onClose) onClose();
             };
+            return modalDiv;
         }
         
-        function showWinModal(stars,reward){
-            showModal(`<h3>🌟 Уровень
+        function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.remove()); }
+        
+        function showWinModal(stars, reward){
+            showModal(`<h3>🌟 Уровень ${currentLevel} пройден! 🌟</h3><p>⭐ ${stars} звезды</p><p>+${reward} монет</p><p>Счёт: ${currentScore}/${levelTargets[currentLevel]}</p>`, () => {
+                if(currentLevel < 10){
+                    currentLevel++;
+                    initLevel();
+              

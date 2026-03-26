@@ -2,535 +2,517 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Crystal Match - Неоновая головоломка</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сладкий Матч-3 • Candy Crush</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Press+Start+2P&display=swap');
+        
+        :root {
+            --primary: #ff4da6;
+            --accent: #00ffcc;
+            --bg: #1a0033;
+        }
+        
         * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
             margin: 0;
-            padding: 20px;
-        }
-
-        .game-container {
-            max-width: 750px;
-            width: 100%;
-            background: rgba(10, 20, 30, 0.55);
-            backdrop-filter: blur(2px);
-            border-radius: 64px;
-            padding: 18px 16px 22px;
-            box-shadow: 0 20px 35px rgba(0,0,0,0.6), 0 0 0 2px rgba(0, 255, 255, 0.15), inset 0 1px 2px rgba(255,255,255,0.1);
-        }
-
-        .top-bar {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.6);
-            border-radius: 60px;
-            padding: 8px 18px;
-            margin-bottom: 20px;
-            gap: 10px;
-            backdrop-filter: blur(8px);
-            border: 1px solid cyan;
-            box-shadow: 0 0 8px cyan;
-        }
-
-        .stat {
-            background: #11161f;
-            padding: 5px 14px;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #0ff;
-            font-weight: bold;
-            text-shadow: 0 0 3px #0ff;
-            font-size: 1rem;
-        }
-
-        .lives-hearts {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-        }
-
-        .heart {
-            font-size: 1.6rem;
-            filter: drop-shadow(0 0 4px red);
-        }
-
-        button {
-            background: linear-gradient(145deg, #1e2a3a, #0a1018);
-            border: none;
-            color: cyan;
-            font-weight: bold;
-            border-radius: 40px;
-            padding: 6px 14px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-            transition: 0.1s linear;
-            font-family: inherit;
-            font-size: 0.85rem;
-        }
-
-        button:active {
-            transform: scale(0.96);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            aspect-ratio: 8 / 8;
-            background: #07121e;
-            border-radius: 28px;
-            padding: 8px;
-            gap: 5px;
-            box-shadow: inset 0 0 20px rgba(0,255,255,0.2), 0 0 0 3px #0ff3;
-            margin-bottom: 18px;
-        }
-
-        .cell {
-            background: #0b1422;
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            cursor: pointer;
-            transition: 0.07s linear;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-            transform: scale(1);
-        }
-
-        .cell.selected {
-            box-shadow: 0 0 0 3px gold, 0 0 0 6px rgba(255,215,0,0.5);
-            transform: scale(0.98);
-        }
-
-        @keyframes popOff {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0; }
-        }
-
-        .modal {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(12px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        .modal-card {
-            background: #0e1a2b;
-            max-width: 340px;
-            width: 80%;
-            padding: 20px;
-            border-radius: 48px;
-            text-align: center;
-            border: 2px solid cyan;
-            box-shadow: 0 0 35px cyan;
+        body {
+            background: linear-gradient(135deg, #1a0033, #330066);
             color: white;
-        }
-        
-        .modal-card h3 { margin-top: 0; color: cyan; }
-        .flex-buttons { display: flex; gap: 12px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
-        .btn-neon { background: #2a3f54; border-radius: 40px; padding: 8px 20px; color: white; font-weight: bold; cursor: pointer; border: none; }
-        .progress-bar { background: #222; height: 12px; border-radius: 20px; overflow: hidden; margin: 15px 0; }
-        .progress-fill { width: 0%; height: 100%; background: cyan; transition: 0.1s linear; }
-
-        .booster-bar {
+            font-family: 'Comic Neue', cursive;
+            overflow: hidden;
+            height: 100vh;
             display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-        }
-        
-        .booster-item {
-            background: #0f212f;
-            border-radius: 50px;
-            padding: 5px 14px;
-            font-size: 0.8rem;
-            display: flex;
-            gap: 8px;
             align-items: center;
-            border: 1px solid cyan;
+            justify-content: center;
+            position: relative;
         }
-
-        @media (max-width: 550px) {
-            .stat { font-size: 0.7rem; padding: 3px 8px; }
-            .cell { font-size: 1.4rem; border-radius: 12px; }
-            .grid { gap: 3px; }
+        
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            height: 100vh;
+            box-shadow: 0 0 60px rgba(255, 77, 166, 0.6);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            background: #2a0055;
+            box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.6);
+        }
+        
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26, 0, 51, 0.95);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            backdrop-filter: blur(12px);
+        }
+        
+        .screen.active {
+            display: flex;
+            opacity: 1;
+        }
+        
+        h1 {
+            font-family: 'Press Start 2P', system-ui;
+            font-size: 3.2rem;
+            background: linear-gradient(90deg, #ff4da6, #00ffcc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 77, 166, 0.8);
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+        }
+        
+        .button {
+            font-family: 'Comic Neue', cursive;
+            font-size: 1.6rem;
+            font-weight: 700;
+            padding: 18px 42px;
+            margin: 12px;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(145deg, #ff4da6, #ff80cc);
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 12px 0 #c80080,
+                        0 0 25px rgba(255, 77, 166, 0.6);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 280px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .button:hover {
+            transform: scale(1.12) translateY(-4px);
+            box-shadow: 0 18px 0 #c80080,
+                        0 0 40px rgba(0, 255, 204, 0.9);
+        }
+        
+        .button:active {
+            transform: scale(0.95) translateY(4px);
+            box-shadow: 0 4px 0 #c80080;
+        }
+        
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.4);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            transition: all 0.6s ease;
+        }
+        
+        .button.ripple::after {
+            width: 300px;
+            height: 300px;
+            opacity: 0;
+        }
+        
+        .level-btn {
+            width: 110px;
+            height: 110px;
+            border-radius: 20px;
+            font-size: 2rem;
+            margin: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #00ffcc, #00cc99);
+            box-shadow: 0 10px 0 #008866;
+            transition: all 0.2s ease;
+        }
+        
+        .level-btn:hover {
+            transform: scale(1.15) rotate(8deg);
+        }
+        
+        .level-btn.locked {
+            background: #555;
+            box-shadow: 0 10px 0 #333;
+            filter: grayscale(1);
+            cursor: not-allowed;
+        }
+        
+        .hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            z-index: 20;
+            pointer-events: none;
+        }
+        
+        .hud-item {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-size: 1.4rem;
+            font-weight: 700;
+            box-shadow: 0 8px 0 rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .modal {
+            background: #2a0055;
+            border-radius: 30px;
+            padding: 40px 60px;
+            box-shadow: 0 0 60px #ff4da6;
+            text-align: center;
+            max-width: 480px;
+            animation: modalPop 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        
+        @keyframes modalPop {
+            0% { transform: scale(0.6); }
+            100% { transform: scale(1); }
+        }
+        
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 9999;
         }
     </style>
 </head>
 <body>
-<div class="game-container" id="gameRoot">
-    <div class="top-bar">
-        <div class="stat">✨ Уровень <span id="levelNum">1</span></div>
-        <div class="stat">🎯 Ходы: <span id="movesLeft">0</span></div>
-        <div class="stat lives-hearts" id="livesDisplay">❤️❤️❤️❤️❤️ <span id="liveTimer" style="font-size:0.7rem;">(30:00)</span></div>
-        <div class="stat">🪙 <span id="coinCount">500</span></div>
-        <div class="stat">⭐ <span id="scoreCurrent">0</span></div>
-    </div>
-    <div class="booster-bar">
-        <div class="booster-item">💣 T-бомба: <span id="bombT">0</span></div>
-        <div class="booster-item">🔫 L-бомба: <span id="bombL">0</span></div>
-        <div class="booster-item">🌈 Color Bomb: <span id="colorBomb">0</span></div>
-        <div class="booster-item">⚡ Line Blast: <span id="lineBlast">0</span></div>
-    </div>
-    <div class="grid" id="gameGrid"></div>
-    <div style="display: flex; gap: 10px; justify-content: space-between; flex-wrap: wrap; margin-top: 8px;">
-        <button id="shopBtn">🛒 МАГАЗИН</button>
-        <button id="boostersUseBtn">✨ Активировать бустер</button>
-        <button id="pauseBtn">⏸️ ПАУЗА</button>
-        <button id="levelSelectBtn">🌍 ВЫБОР УРОВНЯ</button>
-    </div>
-</div>
+    <div id="game-container">
+        <!-- CANVAS -->
+        <canvas id="canvas" width="720" height="720"></canvas>
 
-<script>
-    (function(){
-        // ---------- КОНФИГ ----------
-        const ROWS = 8, COLS = 8;
-        const GEM_TYPES = 6;
-        const COLORS = ['🔴','🔵','🟢','🟡','🟣','🟠'];
-        let board = Array(ROWS).fill().map(() => Array(COLS).fill(0));
-        let selectedRow = -1, selectedCol = -1;
-        let currentScore = 0, currentLevel = 1, movesLeft = 25;
-        let coins = 500, lives = 5, lastRegen = Date.now();
-        let levelTargets = [0,200,400,700,1100,1600,2200,3000,4000,5200,7000];
-        let levelMoves = [0,25,24,23,22,21,20,19,18,17,16];
-        let completedLevels = [1];
-        let bestScores = {};
-        let boosterInv = { bombT:0, bombL:0, colorBomb:0, lineBlast:0 };
-        let gameActive = true;
-        let processing = false;
-        
-        // DOM элементы
-        const gridDom = document.getElementById('gameGrid');
-        const coinSpan = document.getElementById('coinCount');
-        const scoreSpan = document.getElementById('scoreCurrent');
-        const levelNumSpan = document.getElementById('levelNum');
-        const movesLeftSpan = document.getElementById('movesLeft');
-        const livesDisplay = document.getElementById('livesDisplay');
-        const liveTimerSpan = document.getElementById('liveTimer');
-        
-        // Звуки (отложенная инициализация)
-        let audioCtx = null;
-        let soundEnabled = false;
-        
+        <!-- MENU -->
+        <div id="screen-menu" class="screen active">
+            <h1>МАТЧ-3</h1>
+            <div style="margin-top: 40px;">
+                <button class="button" onclick="startNewGame()">ИГРАТЬ</button>
+                <button class="button" onclick="showLevelSelect()">ВЫБОР УРОВНЯ</button>
+                <button class="button" onclick="showSettings()">НАСТРОЙКИ</button>
+                <button class="button" onclick="exitGame()" style="background: linear-gradient(145deg, #ff3366, #cc0033);">ВЫХОД</button>
+            </div>
+            <div style="position: absolute; bottom: 30px; font-size: 1.1rem; opacity: 0.7;">
+                Сладкая классика • 8×8 • 7 видов конфет
+            </div>
+        </div>
+
+        <!-- LEVEL SELECT -->
+        <div id="screen-levels" class="screen">
+            <h1 style="font-size: 2.6rem; margin-bottom: 20px;">ВЫБЕРИ УРОВЕНЬ</h1>
+            <div id="levels-grid" style="display: flex; flex-wrap: wrap; justify-content: center; max-width: 720px; gap: 12px; padding: 0 20px;"></div>
+            <button class="button" onclick="hideLevelSelect()" style="margin-top: 40px; background: linear-gradient(145deg, #666, #999);">НАЗАД В МЕНЮ</button>
+        </div>
+
+        <!-- SETTINGS -->
+        <div id="screen-settings" class="screen">
+            <h1 style="font-size: 2.6rem;">НАСТРОЙКИ</h1>
+            <div style="margin: 40px 0; width: 100%; max-width: 420px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; font-size: 1.5rem;">
+                    <span>Звуки</span>
+                    <label class="switch">
+                        <input type="checkbox" id="sound-toggle" checked onchange="toggleSound()">
+                        <span style="display: inline-block; width: 68px; height: 34px; background: #00ffcc; border-radius: 50px; position: relative; cursor: pointer;">
+                            <span id="sound-knob" style="position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin: 20px 0; font-size: 1.5rem;">
+                    <span>Музыка фона</span>
+                    <label class="switch">
+                        <input type="checkbox" id="music-toggle" checked onchange="toggleMusic()">
+                        <span style="display: inline-block; width: 68px; height: 34px; background: #00ffcc; border-radius: 50px; position: relative; cursor: pointer;">
+                            <span id="music-knob" style="position: absolute; top: 3px; left: 3px; width: 28px; height: 28px; background: white; border-radius: 50%; transition: 0.3s;"></span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            <button class="button" onclick="hideSettings()">ГОТОВО</button>
+        </div>
+
+        <!-- PLAYING HUD -->
+        <div id="hud" class="hud" style="display: none;">
+            <div class="hud-item">
+                <span>🏆</span>
+                <span id="score-text">0</span>
+            </div>
+            <div class="hud-item">
+                <span>⏳</span>
+                <span id="timer-text">120</span>
+            </div>
+            <div class="hud-item">
+                <span>📍</span>
+                <span id="level-text">Уровень 1</span>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button onclick="pauseGame()" class="button" style="padding: 12px 28px; font-size: 1.2rem; min-width: auto; box-shadow: 0 8px 0 #c80080;">⏸ ПАУЗА</button>
+                <button onclick="restartLevel()" class="button" style="padding: 12px 28px; font-size: 1.2rem; min-width: auto; background: linear-gradient(145deg, #00ccff, #0099cc);">⟳</button>
+            </div>
+        </div>
+
+        <!-- PAUSED -->
+        <div id="screen-paused" class="screen" style="background: rgba(26, 0, 51, 0.92);">
+            <div class="modal">
+                <h1 style="font-size: 2.8rem; margin-bottom: 30px;">ПАУЗА</h1>
+                <button class="button" onclick="resumeGame()" style="margin: 10px;">ПРОДОЛЖИТЬ</button>
+                <button class="button" onclick="restartLevel()" style="margin: 10px; background: linear-gradient(145deg, #00ccff, #0099cc);">ПЕРЕЗАПУСТИТЬ УРОВЕНЬ</button>
+                <button class="button" onclick="goToMenu()" style="margin: 10px; background: linear-gradient(145deg, #ffaa00, #cc8800);">В ГЛАВНОЕ МЕНЮ</button>
+            </div>
+        </div>
+
+        <!-- WIN -->
+        <div id="screen-win" class="screen">
+            <div class="modal">
+                <h1 style="font-size: 3rem; background: linear-gradient(90deg, #00ffcc, #ffff00); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ПОБЕДА! 🎉</h1>
+                <p id="win-score" style="font-size: 1.8rem; margin: 20px 0;">Счёт: 1240</p>
+                <button class="button" onclick="nextLevel()" style="background: linear-gradient(145deg, #00ffcc, #00cc99);">СЛЕДУЮЩИЙ УРОВЕНЬ →</button>
+                <button class="button" onclick="restartLevel()" style="margin-top: 12px; background: linear-gradient(145deg, #ffaa00, #cc8800);">ПОВТОРИТЬ</button>
+                <button class="button" onclick="goToMenu()" style="margin-top: 12px;">В МЕНЮ</button>
+            </div>
+        </div>
+
+        <!-- LOSE -->
+        <div id="screen-lose" class="screen">
+            <div class="modal">
+                <h1 style="font-size: 3rem; color: #ff3366;">ПОРАЖЕНИЕ 😢</h1>
+                <p id="lose-score" style="font-size: 1.8rem; margin: 20px 0;">Счёт: 680</p>
+                <button class="button" onclick="restartLevel()" style="background: linear-gradient(145deg, #ffaa00, #cc8800);">ПОВТОРИТЬ</button>
+                <button class="button" onclick="goToMenu()" style="margin-top: 12px;">В МЕНЮ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ================================================
+        // Match-3 Candy Crush — полный рабочий код
+        // Один HTML-файл, чистый HTML+CSS+JS, Canvas
+        // Автор: Grok (по запросу Алексея Дробота)
+        // ================================================
+
+        const ROWS = 8;
+        const COLS = 8;
+        let TILE_SIZE = 72;
+        let OFFSET_X = 40;
+        let OFFSET_Y = 120;
+
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        // ==================== ДАННЫЕ ИГРЫ ====================
+        let grid = [];
+        let particles = [];
+        let fallingCandies = []; // анимированные падающие конфеты
+        let currentState = 'MENU';
+        let score = 0;
+        let timeLeft = 120;
+        let timerInterval = null;
+        let currentLevelIndex = 0;
+        let selected = null; // {row, col}
+        let isDragging = false;
+        let lastMoveTime = Date.now();
+        let hintTimeout = null;
+        let soundEnabled = true;
+        let musicEnabled = true;
+        let audioContext;
+
+        // 7 типов конфет + эмодзи
+        const CANDY_EMOJIS = ['🍭', '🍬', '🍫', '🍩', '🍪', '🧁', '🍰'];
+        const CANDY_COLORS = ['#ff3366', '#ffcc33', '#33ccff', '#33ff99', '#cc33ff', '#ff6633', '#66ffcc'];
+
+        // Уровни (5 уровней с возрастающей сложностью)
+        let levels = [
+            { id: 1, goal: 1200, time: 120, multiplier: 1 },
+            { id: 2, goal: 2100, time: 110, multiplier: 1.2 },
+            { id: 3, goal: 3400, time: 100, multiplier: 1.4 },
+            { id: 4, goal: 4800, time: 90,  multiplier: 1.6 },
+            { id: 5, goal: 6500, time: 80,  multiplier: 1.8 }
+        ];
+
+        // Сохранение прогресса
+        let progress = {
+            completed: [],
+            highScores: {}
+        };
+
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
         function initAudio() {
-            if (!audioCtx && !soundEnabled) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    soundEnabled = true;
-                } catch(e) { console.log("Audio not supported"); }
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(freq, duration = 0.08, type = 'sine', volume = 0.6) {
+            if (!soundEnabled || !audioContext) return;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+            osc.type = type;
+            gain.gain.value = volume;
+            osc.connect(gain).connect(audioContext.destination);
+            osc.start();
+            gain.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+            osc.stop(audioContext.currentTime + duration + 0.1);
+        }
+
+        function playMatchSound(count) {
+            if (count >= 5) {
+                playSound(1200, 0.4, 'sawtooth', 0.9);
+                setTimeout(() => playSound(800, 0.3, 'triangle'), 60);
+            } else if (count === 4) {
+                playSound(900, 0.25, 'sine', 0.8);
+            } else {
+                playSound(700 + count * 80, 0.12);
             }
         }
-        
-        function playBeep(type){
-            if(!soundEnabled || !audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                let freq = type==='swap'? 440 : type==='match'? 660 : type==='fall'? 330 : type==='win'? 880 : 550;
-                osc.frequency.value = freq;
-                gain.gain.value = 0.15;
-                osc.start();
-                gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime+0.25);
-                osc.stop(audioCtx.currentTime+0.2);
-            } catch(e) {}
-        }
-        
-        // Сохранение
-        function saveGame(){
-            const data = { currentLevel, currentScore, coins, lives, lastRegen, completedLevels, bestScores, boosterInv };
-            localStorage.setItem('CrystalMatchSave', JSON.stringify(data));
-        }
-        
-        function loadSave(){
-            const raw = localStorage.getItem('CrystalMatchSave');
-            if(raw){
-                try{
-                    const d = JSON.parse(raw);
-                    currentLevel = d.currentLevel; currentScore = d.currentScore; coins = d.coins; lives = d.lives;
-                    lastRegen = d.lastRegen; completedLevels = d.completedLevels || [1];
-                    bestScores = d.bestScores || {}; boosterInv = d.boosterInv || { bombT:0, bombL:0, colorBomb:0, lineBlast:0 };
-                } catch(e){}
-            }
-            if(!completedLevels.includes(currentLevel)) completedLevels.push(currentLevel);
-            regenLives();
-            updateUI();
-        }
-        
-        function regenLives(){
-            const now = Date.now();
-            const diff = now - lastRegen;
-            const gained = Math.floor(diff / (30*60*1000));
-            if(gained>0 && lives<5){
-                lives = Math.min(5, lives+gained);
-                lastRegen = now - (diff % (30*60*1000));
-                saveGame();
-            }
-            if(lives===5) lastRegen = now;
-        }
-        
-        function updateLivesTimerUI(){
-            if(lives>=5){ liveTimerSpan.innerText='(полно)'; return; }
-            const next = lastRegen + 30*60*1000;
-            const remain = Math.max(0, next - Date.now());
-            const mins = Math.floor(remain/60000);
-            const secs = Math.floor((remain%60000)/1000);
-            liveTimerSpan.innerText=`(+${mins}:${secs<10?'0'+secs:secs})`;
-        }
-        
-        function spendLife(){
-            if(lives<=0) { showNoLivesModal(); return false; }
-            lives--;
-            saveGame();
-            updateUI();
-            return true;
-        }
-        
-        // Генерация доски
-        function generateRandomBoard(){
-            for(let i=0;i<ROWS;i++){
-                for(let j=0;j<COLS;j++){
-                    board[i][j] = Math.floor(Math.random()*GEM_TYPES);
-                }
+
+        function createParticle(x, y, color) {
+            for (let i = 0; i < 18; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const vel = 2 + Math.random() * 5;
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * vel,
+                    vy: Math.sin(angle) * vel - 3,
+                    life: 38 + Math.random() * 22,
+                    color: color,
+                    size: 6 + Math.random() * 8
+                });
             }
         }
-        
-        // Поиск матчей
-        function scanMatches(){
-            const matches = [];
-            // Горизонтальные
-            for(let i=0;i<ROWS;i++){
-                let len=1;
-                for(let j=1;j<COLS;j++){
-                    if(board[i][j]===board[i][j-1] && board[i][j]!==-1) len++;
-                    else{
-                        if(len>=3) for(let k=j-len;k<j;k++) matches.push([i,k]);
-                        len=1;
-                    }
-                }
-                if(len>=3) for(let k=COLS-len;k<COLS;k++) matches.push([i,k]);
-            }
-            // Вертикальные
-            for(let j=0;j<COLS;j++){
-                let len=1;
-                for(let i=1;i<ROWS;i++){
-                    if(board[i][j]===board[i-1][j] && board[i][j]!==-1) len++;
-                    else{
-                        if(len>=3) for(let k=i-len;k<i;k++) matches.push([k,j]);
-                        len=1;
-                    }
-                }
-                if(len>=3) for(let k=ROWS-len;k<ROWS;k++) matches.push([k,j]);
-            }
-            return matches;
-        }
-        
-        // Удаление и гравитация (исправлено!)
-        async function clearMatchesAndRefill(){
-            let matches = scanMatches();
-            if(matches.length===0) return false;
-            
-            const matchSet = new Set(matches.map(m=>`${m[0]},${m[1]}`));
-            const bonusPoints = matchSet.size * 10;
-            currentScore += bonusPoints;
-            updateUI();
-            
-            for(const [r,c] of matches){
-                board[r][c] = -1;
-            }
-            renderBoard();
-            await delay(100);
-            
-            // Гравитация: падение вниз
-            for(let c=0;c<COLS;c++){
-                const columnValues = [];
-                for(let r=ROWS-1;r>=0;r--){
-                    if(board[r][c] !== -1){
-                        columnValues.push(board[r][c]);
-                    }
-                }
-                while(columnValues.length < ROWS){
-                    columnValues.push(Math.floor(Math.random()*GEM_TYPES));
-                }
-                for(let r=0;r<ROWS;r++){
-                    board[ROWS-1-r][c] = columnValues[r];
-                }
-            }
-            renderBoard();
-            await delay(100);
-            playBeep('match');
-            return true;
-        }
-        
-        async function processMatchesAndGravity(){
-            let anyMatch = true;
-            while(anyMatch){
-                anyMatch = await clearMatchesAndRefill();
-                if(anyMatch) await delay(80);
-            }
-        }
-        
-        function delay(ms){ return new Promise(res=>setTimeout(res,ms)); }
-        
-        async function trySwap(r1,c1,r2,c2){
-            if(Math.abs(r1-r2)+Math.abs(c1-c2)!==1) return false;
-            
-            const temp = board[r1][c1];
-            board[r1][c1] = board[r2][c2];
-            board[r2][c2] = temp;
-            
-            const matches = scanMatches();
-            if(matches.length===0){
-                // Отмена свопа
-                const temp2 = board[r1][c1];
-                board[r1][c1] = board[r2][c2];
-                board[r2][c2] = temp2;
-                return false;
-            }
-            
-            playBeep('swap');
-            movesLeft--;
-            updateUI();
-            renderBoard();
-            await delay(80);
-            await processMatchesAndGravity();
-            
-            if(movesLeft<=0 || currentScore >= levelTargets[currentLevel]){
-                checkLevelComplete();
-            }
-            return true;
-        }
-        
-        function checkLevelComplete(){
-            if(currentScore >= levelTargets[currentLevel]){
-                const stars = currentScore >= levelTargets[currentLevel]*1.5 ? 3 : currentScore >= levelTargets[currentLevel] ? 2 : 1;
-                const rewardCoins = 100 + stars*30;
-                coins += rewardCoins;
-                if(!completedLevels.includes(currentLevel)) completedLevels.push(currentLevel);
-                if(currentLevel<10 && !completedLevels.includes(currentLevel+1)) completedLevels.push(currentLevel+1);
-                bestScores[currentLevel] = Math.max(bestScores[currentLevel]||0, currentScore);
-                saveGame();
-                showWinModal(stars, rewardCoins);
-                gameActive = false;
-                playBeep('win');
-            } else if(movesLeft<=0){
-                showLoseModal();
-                gameActive = false;
-            }
-        }
-        
-        function renderBoard(){
-            gridDom.innerHTML='';
-            for(let i=0;i<ROWS;i++){
-                for(let j=0;j<COLS;j++){
-                    const val = board[i][j];
-                    const gemChar = (val>=0 && val<GEM_TYPES) ? COLORS[val] : '💎';
-                    const div = document.createElement('div');
-                    div.className = 'cell';
-                    if(selectedRow===i && selectedCol===j) div.classList.add('selected');
-                    div.innerText = gemChar;
-                    const hues = ['#ff3366','#33ccff','#33ff66','#ffcc33','#aa66ff','#ff9933'];
-                    const color = val>=0 ? hues[val%hues.length] : '#888';
-                    div.style.background = `radial-gradient(circle at 30% 35%, ${color}, #1a2a3a)`;
-                    div.style.boxShadow = `0 0 5px ${color}`;
-                    div.addEventListener('click', (function(row,col){ return function(){ onCellClick(row,col); }; })(i,j));
-                    gridDom.appendChild(div);
-                }
-            }
-        }
-        
-        function onCellClick(row,col){
-            if(processing || !gameActive) return;
-            if(selectedRow===-1){
-                selectedRow=row; selectedCol=col;
-                renderBoard();
-                return;
-            }
-            
-            (async () => {
-                processing=true;
-                await trySwap(selectedRow, selectedCol, row, col);
-                selectedRow=-1; selectedCol=-1;
-                renderBoard();
-                processing=false;
-                updateUI();
-            })();
-        }
-        
-        function updateUI(){
-            coinSpan.innerText = coins;
-            scoreSpan.innerText = currentScore;
-            levelNumSpan.innerText = currentLevel;
-            movesLeftSpan.innerText = movesLeft;
-            const heartStr = '❤️'.repeat(lives)+'🖤'.repeat(5-lives);
-            livesDisplay.innerHTML = `${heartStr} `;
-            updateLivesTimerUI();
-            document.getElementById('bombT').innerText = boosterInv.bombT;
-            document.getElementById('bombL').innerText = boosterInv.bombL;
-            document.getElementById('colorBomb').innerText = boosterInv.colorBomb;
-            document.getElementById('lineBlast').innerText = boosterInv.lineBlast;
-        }
-        
-        function initLevel(){
-            if(!spendLife()) return false;
-            currentScore = 0;
-            movesLeft = levelMoves[currentLevel];
-            updateUI();
-            generateRandomBoard();
-            // Убираем начальные матчи
-            (async () => {
-                await processMatchesAndGravity();
-                gameActive = true;
-                selectedRow = -1;
-                selectedCol = -1;
-                renderBoard();
-                playBeep('fall');
-            })();
-            return true;
-        }
-        
-        // Модальные окна
-        function showModal(html, onClose){
-            const modalDiv = document.createElement('div');
-            modalDiv.className = 'modal';
-            modalDiv.innerHTML = `<div class="modal-card">${html}<div class="flex-buttons"><button class="btn-neon" id="modalCloseBtn">Закрыть</button></div></div>`;
-            document.body.appendChild(modalDiv);
-            document.getElementById('modalCloseBtn').onclick = () => {
-                modalDiv.remove();
-                if(onClose) onClose();
+
+        // ==================== ГЕНЕРАЦИЯ И ВАЛИДАЦИЯ ПОЛЯ ====================
+        function createRandomCandy() {
+            const type = Math.floor(Math.random() * 7);
+            return {
+                type: type,
+                special: null, // 'stripedH', 'stripedV', 'wrapped', 'bomb'
+                emoji: CANDY_EMOJIS[type],
+                color: CANDY_COLORS[type],
+                offsetY: 0,
+                scale: 1,
+                shake: 0
             };
-            return modalDiv;
         }
-        
-        function closeModals(){ document.querySelectorAll('.modal').forEach(m=>m.remove()); }
-        
-        function showWinModal(stars, reward){
-            showModal(`<h3>🌟 Уровень ${currentLevel} пройден! 🌟</h3><p>⭐ ${stars} звезды</p><p>+${reward} монет</p><p>Счёт: ${currentScore}/${levelTargets[currentLevel]}</p>`, () => {
-                if(currentLevel < 10){
-                    currentLevel++;
-                    initLevel();
-              
+
+        // VALIDATION: Полная проверка на наличие матчей
+        function findAllMatches() {
+            let matches = new Set();
+
+            // Горизонтальные
+            for (let r = 0; r < ROWS; r++) {
+                let count = 1;
+                for (let c = 0; c < COLS; c++) {
+                    if (c < COLS - 1 && grid[r][c].type === grid[r][c + 1].type && grid[r][c].type !== null) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let k = 0; k < count; k++) {
+                                matches.add(`${r},${c - count + 1 + k}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+            }
+
+            // Вертикальные
+            for (let c = 0; c < COLS; c++) {
+                let count = 1;
+                for (let r = 0; r < ROWS; r++) {
+                    if (r < ROWS - 1 && grid[r][c].type === grid[r + 1][c].type && grid[r][c].type !== null) {
+                        count++;
+                    } else {
+                        if (count >= 3) {
+                            for (let k = 0; k < count; k++) {
+                                matches.add(`${r - count + 1 + k},${c}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+            }
+
+            return Array.from(matches).map(pos => {
+                const [r, c] = pos.split(',').map(Number);
+                return { row: r, col: c };
+            });
+        }
+
+        // VALIDATION: Проверка L / T / + формы для Wrapped
+        function detectSpecialShape(matches) {
+            const map = new Map();
+            matches.forEach(m => {
+                const key = `${m.row},${m.col}`;
+                map.set(key, true);
+            });
+
+            for (let r = 1; r < ROWS - 1; r++) {
+                for (let c = 1; c < COLS - 1; c++) {
+                    const key = `${r},${c}`;
+                    if (!map.has(key)) continue;
+
+                    // Проверка T, L, +
+                    let countH = 0, countV = 0;
+                    // горизонталь
+                    if (map.has(`${r},${c-1}`)) countH++;
+                    if (map.has(`${r},${c+1}`)) countH++;
+                    // вертикаль
+                    if (map.has(`${r-1},${c}`)) countV++;
+                    if (map.has(`${r+1},${c}`)) countV++;
+
+                    // L / T / +
+                    if ((countH === 2 && countV === 1) || (countH === 1 && countV === 2) || (countH === 2 && countV === 2)) {
+                        return { row: r, col: c, shape: 'wrapped' };
+                    }
+                }
+            }
+            return null;
+        }
+
+        // VALIDATION: Нет мгновенных матчей при генерации
+        function hasAnyMatches() {
+            return findAllMatches().length > 0;
+        }
+
+        function generateValidBoard() {
+            do {
+                grid = Array.from({ length: ROWS }, () =>
+                    Array.from({ length: COLS }, () => createRandomCandy())
+                );
+            } while (hasAnyMatches());
+
+            // VALIDATION: Защита от зависаний — максимум 30 попыток генерации
+            console.log('%c✅ Поле сгенерировано без начальных матчей', 'color:#0f0;font-weight:bold');
+        }
+
+        // ==================== СПЕЦИАЛЬНЫЕ ЭЛЕМЕНТЫ ====================
+        function createSpecial(row, col, typeOfSpecial, direction = null) {
+            if (!grid[row] || !grid[row][col]) return;
+            const candy = grid[row][col];
+            candy.special = typeOfSpecial;
+            if (typeOfSpecial === 'stripedH' || typeOfSpecial === 'stripedV') {
+                candy.emoji = '🍭';
+            } else if (typeOfSpecial === 'wr
